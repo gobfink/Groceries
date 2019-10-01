@@ -1,0 +1,7 @@
+Create a volume that stores webpages
+Use Requests to download all grocery pages
+Parse for prices
+Parse for weight
+Calculate price per weight
+
+Start with 1 item, expand to many
