@@ -1,5 +1,6 @@
 version: '0.1'
 services:
   beautifulsoup:
-#    image: "python:3.8.0b4-buster"
+     volumes: 
+       - ./webpages:/webpages
      build: .

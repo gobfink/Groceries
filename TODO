@@ -1,5 +1,8 @@
-Create a volume that stores webpages
+<-- Done --> Create a volume that stores webpages
 Use Requests to download all grocery pages
+ - Create a config file that has top level urls to grab
+ - parse urls for different departments from page
+ - organize into timestamped directories
 Parse for prices
 Parse for weight
 Calculate price per weight
