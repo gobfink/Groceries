@@ -2,5 +2,5 @@ version: '0.1'
 services:
   beautifulsoup:
      volumes: 
-       - ./webpages:/webpages
+       - ./code:/code
      build: .
