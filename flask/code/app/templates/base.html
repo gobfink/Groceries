@@ -1,0 +1,60 @@
+<!-- app/templates/base.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{ title }} | Project Acronym DB</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylsheet">
+</head>
+<body>
+    <nav class="navbar navbar-default navbar-fixed-top topnav" role="navigation">
+        <div class="container topnav">
+          <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand topnav" href="{{ url_for('home.homepage') }}">About Acronym DB</a>
+          </div>
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <ul class="nav navbar-nav navbar-right">
+                  {% if current_user.is_authenticated %}
+                     {% if current_user.userIsAdmin == 1 %}
+                        <li><a href="{{ url_for('home.acronyms') }}">Acronyms</a></li>
+                        <li><a href="{{ url_for('admin.list_tags') }}">Tags</a></li>
+                        <li><a href="{{ url_for('admin.list_users') }}">Users</a></li>
+                        <li><a href="{{ url_for('admin.import_form') }}">Upload CSV</a></li>
+                        <li><a href="{{ url_for('admin.export_form') }}">Export Acronyms</a></li>
+                     {% else %}
+                        <li><a href="{{ url_for('home.acronyms') }}">Acronyms</a></li>
+                     {% endif %}
+                     <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+                     <li><a href="#">logged in as {{ current_user.userFN }}&nbsp;{{ current_user.userLN }} (
+                     {% if current_user.userLastLoginDT is none %}
+                         Never
+                     {% else %}
+                         {{ current_user.userLastLoginDT.strftime('%m/%d/%Y %H:%M:%S') }}
+                     {% endif %}
+                     )</a></li>
+              </ul>
+                  {% else %}
+                     <li><a href="{{ url_for('home.acronyms') }}">Acronyms</a></li>
+                     <li><a href="{{ url_for('auth.register') }}">Register</a></li>
+                     <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+              </ul>
+                  {% endif %}
+          </div>
+        </div>
+    </nav>
+    <div class="wrapper">
+      {% block body %}
+      {% endblock %}
+      <div class="push"></div>
+    </div>
+</body>
+</html>

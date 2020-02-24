@@ -1,0 +1,64 @@
+<!-- app/templates/home/acronyms/acronym.html -->
+
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/utils.html" as utils %}
+{% extends "base.html" %}
+{% block title %}
+    {% if add_acronym %}
+        Add Acronym
+    {% else %}
+        Edit Acronym
+    {% endif %}
+{% endblock %}
+{% block body %}
+<div class="content-section">
+ <div class="outer">
+    <div class="middle">
+      <div class="inner">
+        {{ utils.flashed_messages() }}
+        <div class="center">
+          <form action="" method="post"
+              class="form" role="form">
+            {% if add_acronym %}
+                <h1>Add Acronym</h1>
+            {% else %}
+                <h1>Edit Acronym</h1>
+            {% endif %}
+            <br/>
+            {{ form.csrf_token }}
+            <table  class="table table-striped table-bordered">
+               <tr><td>{{ form.acronym.label }}</td><td>{{ form.acronym }}</td></tr>
+               <tr><td>{{ form.name.label }}</td><td>{{ form.name }}</td></tr>
+               <tr><td>{{ form.definition.label }}</td><td>{{ form.definition(rows='3', cols='80') }}</td></tr>
+            {% if add_acronym==false %}
+               <tr><td>Author:</td><td>{{ acronym.author.userFN }} {{ acronym.author.userLN }}</td></tr>
+               <tr><td>Date Create:</td><td>{{ acronym.dateCreate }}</td></tr>
+            {% endif %}
+               <tr>
+                <td>Tags</td>
+                <td> 
+                  <table class="table table-striped table-bordered">
+                    {% for tag in acronyms_tags.keys() %}
+                    <tr><td><label><input type="checkbox" name="tag" value="{{ acronyms_tagids[tag] }}" {% if acronyms_tags[tag] %} checked {% endif %}> &nbsp; {{ tag }}</label></td></tr>
+                    {% endfor %}
+                  </table>
+                </td>
+               </tr>
+               {% if false %}
+               <tr><td>Tags:</td><td>
+               {% for tag in acronym.acrotags %}
+                  <span class="tag">{{ tag.tagTable.tag }}</span><a href="{{ url_for('home.edit_acronym',id=acronym.id,cmd='deltag',acrotagid=tag.id) }}" title="Remove Tag" class="tagbutton">X</a>
+               {% endfor %}
+               <br />
+               <a href="{{ url_for('home.edit_acronym',id=acronym.id,cmd='addtag') }}" class="tagbutton" title="Add Tag">+</a>
+               </td></tr>
+               {% endif %}
+            <tr><td align=right>{{ form.submit }}</td><td align=left>{{ form.cancel }}</td></tr>
+            </table>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

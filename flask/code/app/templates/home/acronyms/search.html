@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% set page_title = 'Search Acronyms' %}
+{% block body %}
+    <div>
+       {{ reder_form(url_for('search'), form) }}
+    </div>
+{% endblock %}
