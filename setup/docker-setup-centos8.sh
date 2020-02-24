@@ -16,6 +16,9 @@ sudo dnf install docker-ce
 echo "enabling docker service"
 sudo systemctl enable --now docker
 
+echo "disabling firewalld due to incompatibility with docker dns"
+sudo systemctl disable --now firewalld
+
 echo "Setting up docker-compose"
 sudo dnf install curl
 sudo curl -L $docker_compose_url -o $docker_compose_destination
