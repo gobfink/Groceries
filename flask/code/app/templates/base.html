@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>{{ title }} | Project Acronym DB</title>
+    <title>{{ title }} | Grocery Price Tracker</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
@@ -19,19 +19,19 @@
                   <span class="icon-bar"></span>
                   <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand topnav" href="{{ url_for('home.homepage') }}">About Acronym DB</a>
+              <a class="navbar-brand topnav" href="{{ url_for('home.homepage') }}">About Grocery Tracker</a>
           </div>
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
               <ul class="nav navbar-nav navbar-right">
                   {% if current_user.is_authenticated %}
                      {% if current_user.userIsAdmin == 1 %}
-                        <li><a href="{{ url_for('home.acronyms') }}">Acronyms</a></li>
+                        <li><a href="{{ url_for('home.groceries') }}">Groceries</a></li>
                         <li><a href="{{ url_for('admin.list_tags') }}">Tags</a></li>
                         <li><a href="{{ url_for('admin.list_users') }}">Users</a></li>
                         <li><a href="{{ url_for('admin.import_form') }}">Upload CSV</a></li>
                         <li><a href="{{ url_for('admin.export_form') }}">Export Acronyms</a></li>
                      {% else %}
-                        <li><a href="{{ url_for('home.acronyms') }}">Acronyms</a></li>
+                        <li><a href="{{ url_for('home.groceries') }}">Acronyms</a></li>
                      {% endif %}
                      <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
                      <li><a href="#">logged in as {{ current_user.userFN }}&nbsp;{{ current_user.userLN }} (
@@ -43,9 +43,7 @@
                      )</a></li>
               </ul>
                   {% else %}
-                     <li><a href="{{ url_for('home.acronyms') }}">Acronyms</a></li>
-                     <li><a href="{{ url_for('auth.register') }}">Register</a></li>
-                     <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                     <li><a href="{{ url_for('home.groceries') }}">Groceries</a></li>
               </ul>
                   {% endif %}
           </div>

@@ -25,6 +25,15 @@ def homepage():
 
     return render_template('home/index.html', title="Welcome")
 
+@home.route('/groceries', methods=['GET','POST'])
+def groceries():
+    """
+    Display the different groceries
+    """
+    #TODO Change this to the actual groceries.html page
+    return render_template('home/index.html', title="Groceries")
+
+
 @home.route('/acronyms', methods=['GET','POST'])
 def acronyms():
     """
