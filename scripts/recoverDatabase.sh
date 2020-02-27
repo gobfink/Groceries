@@ -1,6 +1,9 @@
-docker cp drop_db.sql acronymdb_db_1:drop_db.sql
-docker cp create_db.sql acronymdb_db_1:create_db.sql
-docker cp db_backup.sql acronymdb_db_1:db_backup.sql
-docker exec acronymdb_db_1 /bin/sh -c 'mysql -uroot -pexample < drop_db.sql'
-docker exec acronymdb_db_1 /bin/sh -c 'mysql -uroot -pexample < create_db.sql'
-docker exec acronymdb_db_1 /bin/sh -c 'mysql -uroot -pexample -h db 'acronym' < db_backup.sql'
+#! /bin/bash
+. ./config.sh
+
+docker cp drop_db.sql $container_name:drop_db.sql
+docker cp create_db.sql $container_name:create_db.sql
+docker cp db_backup.sql $container_name:db_backup.sql
+docker exec $container_name /bin/sh -c "mysql -u$user_name -p$password < drop_db.sql"
+docker exec $container_name /bin/sh -c "mysql -u$user_name -p$password < create_db.sql"
+docker exec $container_name /bin/sh -c "mysql -u$user_name -p$password -h db $database < db_backup.sql"
