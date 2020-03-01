@@ -4,6 +4,6 @@ def connection():
     conn = MySQLdb.connect(host="db",
                            user="root",
                            passwd="example",
-                           db="acronym")
+                           db="groceries")
     c = conn.cursor()
     return c, conn

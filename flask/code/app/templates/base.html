@@ -31,7 +31,7 @@
                         <li><a href="{{ url_for('admin.import_form') }}">Upload CSV</a></li>
                         <li><a href="{{ url_for('admin.export_form') }}">Export Acronyms</a></li>
                      {% else %}
-                        <li><a href="{{ url_for('home.groceries') }}">Acronyms</a></li>
+                        <li><a href="{{ url_for('home.groceries') }}">Groceries</a></li>
                      {% endif %}
                      <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
                      <li><a href="#">logged in as {{ current_user.userFN }}&nbsp;{{ current_user.userLN }} (

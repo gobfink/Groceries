@@ -103,3 +103,26 @@ class Tag(db.Model):
 
     def __repr__(self):
        return '<Tag: {}>'.format(self.tag)
+
+class db_Groceries(db.Model):
+    """
+    Create Groceries table
+    """
+
+    __tablename__ = 'grocery_table'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    price = db.Column(db.Float)
+    ounces = db.Column(db.Float)
+    price_density = db.column_property(price/ounces)
+    brand = db.Column(db.String(80))
+    quality_id = db.Column(db.Integer, db.ForeignKey('quality_table.id'))
+    date = db.Column(db.DateTime, default=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('author_table.id'))
+    store_id = db.Column(db.Integer, db.ForeignKey('store_table.id'))
+
+    #column_sortable_list = ('acronym', 'definition', 'author.userLN')
+
+    def __repr__(self):
+       return '<Grocery: %s, Def: %s>'%(format(self.name),format(self.price))

@@ -50,8 +50,8 @@ DROP TABLE IF EXISTS `grocery_table`;
 CREATE TABLE `grocery_table` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` text NOT NULL,
-  `price` float NOT NULL,
   `brand` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `price` float NOT NULL,
   `ounces` float NOT NULL,
   `quality_id` int NOT NULL,
   `date` datetime NOT NULL,
@@ -67,7 +67,7 @@ CREATE TABLE `grocery_table` (
 
 LOCK TABLES `grocery_table` WRITE;
 /*!40000 ALTER TABLE `grocery_table` DISABLE KEYS */;
-INSERT INTO `grocery_table` VALUES (1,'Test1',1.11,'Test',22,3,'2020-02-28 23:36:12',1,1),(2,'Test2',2.25,'Brand 2',15,2,'2020-02-28 23:37:04',1,2);
+INSERT INTO `grocery_table` VALUES (1,'Test1','Test',1.11,22,3,'2020-02-28 23:36:12',1,1),(2,'Test2','Brand 2',2.25,15,2,'2020-02-28 23:37:04',1,2);
 /*!40000 ALTER TABLE `grocery_table` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -128,4 +128,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-02-28 23:37:35
+-- Dump completed on 2020-03-01  6:28:52

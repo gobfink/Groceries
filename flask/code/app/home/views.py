@@ -3,7 +3,7 @@ import datetime
 from wtforms import BooleanField 
 from flask import abort, render_template, redirect, flash, url_for, request
 from flask_login import current_user, login_required
-from ..models import Acronym, Tag, AcroTag, User
+from ..models import Acronym, Tag, AcroTag, User, db_Groceries
 from .. import db
 
 from . forms import AcronymsForm, AcronymSearchForm, AddTagForm
@@ -30,9 +30,27 @@ def groceries():
     """
     Display the different groceries
     """
-    #TODO Change this to the actual groceries.html page
-    return render_template('home/index.html', title="Groceries")
 
+    q_groceries = db_Groceries.query.all()
+
+    grocery_list = []
+    #TODO dynamically generate the mapping between columns and values and display accordingly in html
+    columns_to_display= ['id', 'name', 'price','ounces','price_density','brand','quality_id','date','author_id','store_id']
+
+    # Convert sqlalchemy model into a dictionary so that jinja2 html can parse it easier
+    for grocery in q_groceries:
+        #field_names = [m.key for m in grocery.__table__.columns]
+        raw = grocery.__dict__
+        #fields = { field: raw[field] for field in field_names }
+        fields = { field: raw[field] for field in columns_to_display }
+        grocery_list.append(fields)
+
+    #flash(grocery_list)
+
+    return render_template('home/groceries/groceries.html',
+                           groceries_queried=q_groceries,
+                           column_titles=columns_to_display,
+                           g_list=grocery_list)
 
 @home.route('/acronyms', methods=['GET','POST'])
 def acronyms():
