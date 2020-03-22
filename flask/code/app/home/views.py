@@ -34,19 +34,25 @@ def groceries():
     q_groceries = db_Groceries.query.all()
     #q_quality = db_quality.query.all()
     grocery_list = []
-    columns_to_display= ['id', 'name', 'price','ounces','price_density','brand','quality_id','date','author_id','store_id']
+    columns_to_display= ['id', 'name', 'author','price','ounces','price_density','brand','date', 'quality','store']
+    #columns_to_display= ['id', 'name', 'price','ounces','price_density','brand','quality_id','date','author_id','store_id']
     # Convert sqlalchemy model into a dictionary so that jinja2 html can parse it easier
     for grocery in q_groceries:
-        #field_names = [m.key for m in grocery.__table__.columns]
+        # Do all of the direct fields first
         raw = grocery.__dict__
-        flash(raw)
-        #fields = { field: raw[field] for field in field_names }
-        #flash("grocery author_id.name - "+ grocery.author_id.name)
+        # Manually add all backrefs to the raw dict
+        raw['author'] = grocery.author.name
+        raw['quality'] = grocery.quality.name
+        raw['store'] = grocery.store.name
+
+        flash("Raws type - " + type(raw).__name__)
         fields = { field: raw[field] for field in columns_to_display }
+        # Do each of the back ref fields manually
+        #fields['author'] = grocery.author.name
+        #fields['quality'] = grocery.quality.name
+        #fields['store'] = grocery.store.name
+
         grocery_list.append(fields)
-        flash(grocery.quality.name)
-        flash(grocery.author.name)
-        flash(grocery.store.name)
 
     flash(grocery_list)
 
