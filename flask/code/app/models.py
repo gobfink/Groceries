@@ -113,6 +113,27 @@ class db_quality(db.Model):
 
     def __repr__(self):
         return '<Quality:%s>' % format(self.name)
+    
+#store_table
+class db_store(db.Model):
+    __tablename__ = 'storeTable'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    groceries_store = db.relationship('db_Groceries', backref='store', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Store: %s>' %format(self.name)
+
+#author_table
+class db_author(db.Model):
+    __tablename__ = 'authorTable'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    groceries_author = db.relationship('db_Groceries', backref='author', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Author: %s>' %format(self.name)
 
 class db_Groceries(db.Model):
     """
@@ -133,28 +154,13 @@ class db_Groceries(db.Model):
     # quality_name = db.Column(db.Integer, db.ForeignKey('quality_table.name'))
 
     date = db.Column(db.DateTime, default=False)
-
-
-    author_id = db.Column(db.Integer)#, db.ForeignKey('author_table.id'))
-    store_id = db.Column(db.Integer)#, db.ForeignKey('store_table.id'))
+    author_id = db.Column(db.Integer, db.ForeignKey('authorTable.id'))
+    store_id = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
+    quality_id = db.Column(db.Integer, db.ForeignKey('qualityTable.id'))
     #TODO convert ids into values this will require pulling down the other tables, and somehow referencing them
     #column_sortable_list = ('acronym', 'definition', 'author.userLN')
 
-    quality_id = db.Column(db.Integer, db.ForeignKey('qualityTable.id'))
     def __repr__(self):
         return '<Grocery: %s, Def: %s>'%(format(self.name),format(self.price))
 
 
-#store_table
-#grocery_table - check
-
-
-#author_table
-class db_author(db.Model):
-    __tablename__ = 'author_table'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
-
-    def __repr__(self):
-        return '<Author: %s, Def: %s>' %format(self.name)

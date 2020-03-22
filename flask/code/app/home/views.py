@@ -45,6 +45,8 @@ def groceries():
         fields = { field: raw[field] for field in columns_to_display }
         grocery_list.append(fields)
         flash(grocery.quality.name)
+        flash(grocery.author.name)
+        flash(grocery.store.name)
 
     flash(grocery_list)
 
