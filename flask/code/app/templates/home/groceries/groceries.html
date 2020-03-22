@@ -39,9 +39,9 @@
              <hr class="intro-divider">
           </div>
           <div style="text-align: center">
-          <a href="{{ url_for('home.add_acronym') }}" class="btn btn-default btn-lg">
+          <a href="{{ url_for('home.add_grocery') }}" class="btn btn-default btn-lg">
             <i class="fa fa-plus"></i>
-            Add Acronym
+            Add Grocery
           </a>
           </div>
           <div class="center">
@@ -60,7 +60,11 @@
                 </tr>
               </thead>
                 <tbody>
-              {% for grocery in g_list %}
+                {% for q_groc in groceries_queried  %}
+                    q_groc loop
+                    {{ q_groc.author_id.name }}
+                {% endfor %}
+                {% for grocery in g_list %}
                 <tr>
                     {% for field, value in grocery.items() %}
                     <td> {{ value }} </td>
@@ -79,9 +83,9 @@
          {{subcount}} of {{totalcount}} records showing 
          <p />
             <!--TODO change this to add grocery and implement method-->
-          <a href="{{ url_for('home.add_acronym') }}" class="btn btn-default btn-lg">
+          <a href="{{ url_for('home.add_grocery') }}" class="btn btn-default btn-lg">
             <i class="fa fa-plus"></i>
-            Add Acronym
+            Add Grocery
           </a>
         </div>
       </div>

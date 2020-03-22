@@ -104,12 +104,22 @@ class Tag(db.Model):
     def __repr__(self):
        return '<Tag: {}>'.format(self.tag)
 
+# quality_table
+class db_quality(db.Model):
+    __tablename__ = 'qualityTable'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    groceries_quality = db.relationship('db_Groceries', backref='quality', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Quality:%s>' % format(self.name)
+
 class db_Groceries(db.Model):
     """
     Create Groceries table
     """
 
-    __tablename__ = 'grocery_table'
+    __tablename__ = 'groceryTable'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
@@ -117,12 +127,34 @@ class db_Groceries(db.Model):
     ounces = db.Column(db.Float)
     price_density = db.column_property(price/ounces)
     brand = db.Column(db.String(80))
-    quality_id = db.Column(db.Integer, db.ForeignKey('quality_table.id'))
-    date = db.Column(db.DateTime, default=False)
-    author_id = db.Column(db.Integer, db.ForeignKey('author_table.id'))
-    store_id = db.Column(db.Integer, db.ForeignKey('store_table.id'))
+    #quality_id = db.Column(db.Integer, db.ForeignKey('db_quality.id'))
+    #quality_relationship = db.relationship('db_groceries', backref='quality', lazy='dynamic')
 
+    # quality_name = db.Column(db.Integer, db.ForeignKey('quality_table.name'))
+
+    date = db.Column(db.DateTime, default=False)
+
+
+    author_id = db.Column(db.Integer)#, db.ForeignKey('author_table.id'))
+    store_id = db.Column(db.Integer)#, db.ForeignKey('store_table.id'))
+    #TODO convert ids into values this will require pulling down the other tables, and somehow referencing them
     #column_sortable_list = ('acronym', 'definition', 'author.userLN')
 
+    quality_id = db.Column(db.Integer, db.ForeignKey('qualityTable.id'))
     def __repr__(self):
-       return '<Grocery: %s, Def: %s>'%(format(self.name),format(self.price))
+        return '<Grocery: %s, Def: %s>'%(format(self.name),format(self.price))
+
+
+#store_table
+#grocery_table - check
+
+
+#author_table
+class db_author(db.Model):
+    __tablename__ = 'author_table'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+
+    def __repr__(self):
+        return '<Author: %s, Def: %s>' %format(self.name)
