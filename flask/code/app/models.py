@@ -109,7 +109,7 @@ class db_quality(db.Model):
     __tablename__ = 'qualityTable'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
-    groceries_quality = db.relationship('db_Groceries', backref='quality', lazy='dynamic')
+    groceries_quality = db.relationship('db_Grocery', backref='quality', lazy='dynamic')
 
     def __repr__(self):
         return '<Quality:%s>' % format(self.name)
@@ -119,7 +119,7 @@ class db_store(db.Model):
     __tablename__ = 'storeTable'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
-    groceries_store = db.relationship('db_Groceries', backref='store', lazy='dynamic')
+    groceries_store = db.relationship('db_Grocery', backref='store', lazy='dynamic')
 
     def __repr__(self):
         return '<Store: %s>' %format(self.name)
@@ -130,12 +130,12 @@ class db_author(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
-    groceries_author = db.relationship('db_Groceries', backref='author', lazy='dynamic')
+    groceries_author = db.relationship('db_Grocery', backref='author', lazy='dynamic')
 
     def __repr__(self):
         return '<Author: %s>' %format(self.name)
 
-class db_Groceries(db.Model):
+class db_Grocery(db.Model):
     """
     Create Groceries table
     """

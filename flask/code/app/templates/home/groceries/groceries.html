@@ -61,7 +61,6 @@
               </thead>
                 <tbody>
                 {% for q_groc in groceries_queried  %}
-                    q_groc loop
                     {{ q_groc.author_id.name }}
                 {% endfor %}
                 {% for grocery in g_list %}
