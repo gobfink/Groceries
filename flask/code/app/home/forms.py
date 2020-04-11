@@ -18,7 +18,7 @@ class GroceryForm(FlaskForm):
     name = StringField('Name', validators=[_required, Length(1,80)])
     brand = StringField('Brand', validators=[_required, Length(1,80)])
     store = SelectField('Store', coerce=int, validators=[_required])
-    quality = SelectField('Quality', coerce=int, validators=[_required]) 
+    quality = SelectField('Quality', coerce=int, validators=[_required])
     price = FloatField('Price')
     ounces = FloatField('Ounces')
     submit = SubmitField('Submit')

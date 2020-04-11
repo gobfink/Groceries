@@ -59,10 +59,13 @@ def groceries():
         grocery_list.append(fields)
 
     # flash(grocery_list)
-
+    number_of_groceries = len(q_groceries)
+    groceries_showing = len(grocery_list)
     return render_template('home/groceries/groceries.html',
                            groceries_queried=q_groceries,
                            column_titles=columns_to_display,
+                           totalcount=number_of_groceries,
+                           subcount=groceries_showing,
                            g_list=grocery_list)
 
 
@@ -234,8 +237,8 @@ def add_grocery():
             else:
                 authid = current_user.id
             # grocery = db_Grocery
-            flash(authid)
-            flash(datetime.datetime.now())
+            #flash(authid)
+            #flash(datetime.datetime.now())
             
             groceryToAdd = db_Grocery(name=form.name.data,
                           brand=form.brand.data,
