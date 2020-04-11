@@ -24,6 +24,15 @@ class GroceryForm(FlaskForm):
     submit = SubmitField('Submit')
     cancel = SubmitField('Cancel')
 
+
+class GrocerySearchForm(Form):
+    """
+    Form for the Grocery search button
+    """
+    select = SelectField('')
+    search = StringField('')
+
+
 class AcronymsForm(FlaskForm):
     """
     Form for  adding or editing acronym
