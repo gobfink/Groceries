@@ -34,19 +34,9 @@ def groceries():
     Display the different groceries
     """
     grocery_list = []
-    """
-    search_functions = {'id': db_Grocery.id.like , 'name': db_Grocery.name.like , 'author': db_author.name.like,
-                        'price': db_Grocery.price.like, 'ounces': db_Grocery.ounces.like,
-                        'price_density': db_Grocery.price_density.like, 'brand': db_Grocery.brand.like,
-                        'date': db_Grocery.date.like, 'quality': db_quality.name.like,
-                        'store': db_store.name.like}
-    columns_to_display = search_functions.keys()
-    all_groceries = db_Grocery.query.all()
 
-    """
     columns_to_display = ['id', 'name', 'author', 'price', 'ounces', 'price_density', 'brand', 'date', 'quality',
                           'store']
-
     grocery_search = GrocerySearchForm(request.form)
 
     # Create a choice list of tuples from the columns_to_display
@@ -59,8 +49,6 @@ def groceries():
     if request.method == 'POST':
         search_query = request.form["search"]
         selected_choice = request.form["select"]
-        # if search_query:
-        #    q_groceries = db_Grocery.query.filter(search_functions[selected_choice](search_query)).all()
 
     # flash(q_groceries)
 
