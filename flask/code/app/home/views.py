@@ -36,13 +36,18 @@ def groceries():
     grocery_list = []
     columns_to_display = ['id', 'name', 'author', 'price', 'ounces', 'price_density', 'brand', 'date', 'quality',
                           'store']
+
     grocery_search = GrocerySearchForm(request.form)
-    grocery_search.select.choices = enumerate(columns_to_display)
+
+    #Create a choice list of tuples from the columns_to_display
+    grocery_search.select.choices = [(c, c) for c in columns_to_display]
 
     q_groceries = db_Grocery.query.all()
-    # q_quality = db_quality.query.all()
 
-    # columns_to_display= ['id', 'name', 'price','ounces','price_density','brand','quality_id','date','author_id','store_id']
+    if request.method == 'POST':
+        flash("request.form[search] : " + request.form["search"])
+        flash("request.form[select] : " + request.form["select"])
+
     # Convert sqlalchemy model into a dictionary so that jinja2 html can parse it easier
     # TODO I bet the performance here is going to be awful once we start adding allot of groceries
     for grocery in q_groceries:
@@ -53,12 +58,7 @@ def groceries():
         raw['quality'] = grocery.quality.name
         raw['store'] = grocery.store.name
 
-        # flash("Raws type - " + type(raw).__name__)
         fields = {field: raw[field] for field in columns_to_display}
-        # Do each of the back ref fields manually
-        # fields['author'] = grocery.author.name
-        # fields['quality'] = grocery.quality.name
-        # fields['store'] = grocery.store.name
 
         grocery_list.append(fields)
 
@@ -80,6 +80,8 @@ def groceries():
                            totalcount=number_of_groceries,
                            subcount=groceries_showing,
                            search_form=grocery_search,
+                         #  search_for=search_for,
+                         #  search_column=search_column,
                            g_list=grocery_list)
 
 
@@ -89,6 +91,9 @@ def acronyms():
     List all acronyms
     """
     totalcount = Acronym.query.count()
+
+    for arg in request.args:
+        flash(arg)
 
     up = 'headerSortUp'
     down = 'headerSortDown'
