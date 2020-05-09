@@ -4,10 +4,12 @@ services:
     volumes: 
      - ./code:/code
     build: .
+    hostname: beautifulsoup
   db:
+    hostname: db
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
-    restart: always
+    restart: unless-stopped
     networks:
       - backend
     environment:
@@ -21,8 +23,9 @@ services:
     ports:
       - "3306:3306"
   adminer:
+    hostname: adminer
     image: adminer
-    restart: always
+    restart: unless-stopped
     networks:
       - backend
     depends_on:
@@ -30,8 +33,9 @@ services:
     ports:
       - "8081:8080"
   flask:
+    hostname: flask
     build: './flask/'
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./flask/code:/code
       - ./upload:/code/app/upload
