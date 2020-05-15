@@ -1,5 +1,11 @@
 version: '3.2'
 services:
+  scrapy:
+     volumes:
+     - ./web:/web
+     - ./scrapy/code:/code
+     build: scrapy/
+     hostname: scrapy
   beautifulsoup:
     volumes: 
      - ./code:/code
