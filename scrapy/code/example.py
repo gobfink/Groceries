@@ -10,7 +10,7 @@ class BrickSetSpider(scrapy.Spider):
     
     def parse(self, response):
         SET_SELECTOR = '.set'
-        inspect_response(response, self)
+        #inspect_response(response, self)
         for brickset in response.css(SET_SELECTOR):
 
             NAME_SELECTOR   = 'h1 ::text'

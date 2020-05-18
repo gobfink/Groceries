@@ -15,12 +15,12 @@ class grocerySpider(scrapy.Spider):
                     endpoint='render.html', args={'wait':0.5},
                     )
     def parse(self, response):
-        inspect_response(response, self)
-        GROCERY_SELECTOR='[data-automation-id="productionTileDetails"]'
-        #GROCERY_SELECTOR='.productionTile'
+        #inspect_response(response, self)
+        GROCERY_SELECTOR='[data-automation-id="productTile"]'
         for grocery in response.css(GROCERY_SELECTOR):
+            
             PRICE_SELECTOR  = ''
-            NAME_SELECTOR   = 'title ::text'
+            NAME_SELECTOR   = '[name]'
             NAME_SELECTOR   = '[data-automation-id="name"]'
             PIECES_SELECTOR = './/dl[dt/text() = "Pieces"]/dd/a/text()'
             MINIFIGS_SELECTOR = './/dl[dt/text() = "Minifigs"]/dd[2]/a/text()'
