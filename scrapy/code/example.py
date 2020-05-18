@@ -1,6 +1,8 @@
 #! /usr/local/bin/python3
 
 import scrapy
+from scrapy.shell import inspect_response
+
 
 class BrickSetSpider(scrapy.Spider):
     name = "brickset_spider"
@@ -8,6 +10,7 @@ class BrickSetSpider(scrapy.Spider):
     
     def parse(self, response):
         SET_SELECTOR = '.set'
+        inspect_response(response, self)
         for brickset in response.css(SET_SELECTOR):
 
             NAME_SELECTOR   = 'h1 ::text'

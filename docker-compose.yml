@@ -1,11 +1,27 @@
 version: '3.2'
 services:
+  scrapy-middleware:
+     hostname: scrapy-middleware
+     image: scrapinghub/splash
+     ports:
+     - "5023:5023"
+     - "8050:8050"
+     - "8051:8051"
+     networks:
+     - backend
   scrapy:
      volumes:
      - ./web:/web
      - ./scrapy/code:/code
+     -  /tmp/.X11-unix:/tmp/.X11-unix
      build: scrapy/
      hostname: scrapy
+     environment: 
+        - "DISPLAY"
+     depends_on:
+     -  scrapy-middleware
+     networks:
+     - backend
   beautifulsoup:
     volumes: 
      - ./code:/code

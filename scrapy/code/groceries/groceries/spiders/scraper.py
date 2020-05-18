@@ -2,12 +2,18 @@
 
 import scrapy
 from scrapy.shell import inspect_response
+from scrapy_splash import SplashRequest
 
 
 class grocerySpider(scrapy.Spider):
     name = "grocery_spider"
-    #start_urls = ['https://grocery.walmart.com/']
-    start_urls = ['https://www.target.com/c/grocery/-/N-5xt1a?Nao=0']
+    start_urls = ['https://grocery.walmart.com/']
+    #start_urls = ['https://www.target.com/c/grocery/-/N-5xt1a?Nao=0']
+    def start_requests(self):
+        for url in self.start_urls:
+            yield SplashRequest(url, self.parse,
+                    endpoint='render.html', args={'wait':0.5},
+                    )
     def parse(self, response):
         inspect_response(response, self)
         GROCERY_SELECTOR='[data-automation-id="productionTileDetails"]'
