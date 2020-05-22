@@ -26,11 +26,11 @@ function main(splash, args)
   end
  
   return {
-    labels = labels,
+    --labels = labels,
     hrefs = hrefs,
     --el = element.nodeName,
-    html = splash:html(),
-    png = splash:png(),
+    --html = splash:html(),
+    --png = splash:png(),
     --har = splash:har(),
   }
 end
