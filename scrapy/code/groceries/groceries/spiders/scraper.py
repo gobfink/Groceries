@@ -12,8 +12,9 @@ class grocerySpider(scrapy.Spider):
     def start_requests(self):
         for url in self.start_urls:
             yield SplashRequest(url, self.parse,
-                    endpoint='render.html', args={'wait':5},
+                    endpoint='render.html', args={'js_source': 'document.title="buttonClick.lua";'},
                     )
+
 
     def parse(self, response):
         GROCERY_SELECTOR='[data-automation-id="productTile"]'

@@ -22,6 +22,8 @@ services:
      -  scrapy-middleware
      networks:
      - backend
+     entrypoint:
+     - "/bin/bash"
   beautifulsoup:
     volumes: 
      - ./code:/code
