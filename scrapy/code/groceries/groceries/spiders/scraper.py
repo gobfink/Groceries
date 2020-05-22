@@ -20,9 +20,6 @@ class grocerySpider(scrapy.Spider):
         lua = read_script("buttonClick.lua")
         print ("Lua script: " + lua)
         for url in self.start_urls:
-            #yield SplashRequest(url, self.parse,
-            #        endpoint='render.html', args={'wait': 2.5, 'lua_source': lua},
-            #        )
             yield SplashRequest(url, self.parse, endpoint='execute', args={'lua_source': lua})
 
 
@@ -32,6 +29,7 @@ class grocerySpider(scrapy.Spider):
         GROCERIES_SELECTOR=GROCERY_SELECTOR+','+SPONSORED_SELECTOR
 
         html = response.body_as_unicode()
+        print (html)
         file = open("scraper.html","w")
         n = file.write(html)
         file.close()
