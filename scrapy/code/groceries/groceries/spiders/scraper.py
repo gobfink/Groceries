@@ -4,22 +4,38 @@ import scrapy
 from scrapy.shell import inspect_response
 from scrapy_splash import SplashRequest
 
+#TODO move this to a utility file?
+def read_script(script_file):
+    file = open(script_file)
+    script = file.read()
+    file.close()
+    return script
 
 class grocerySpider(scrapy.Spider):
     name = "grocery_spider"
     start_urls = ['https://grocery.walmart.com/']#, 'https://grocery.walmart.com/products?aisle=1255027787131_1255027789453']
     #start_urls = ['https://www.target.com/c/grocery/-/N-5xt1a?Nao=0']
+    
     def start_requests(self):
+        lua = read_script("buttonClick.lua")
+        print ("Lua script: " + lua)
         for url in self.start_urls:
-            yield SplashRequest(url, self.parse,
-                    endpoint='render.html', args={'js_source': 'document.title="buttonClick.lua";'},
-                    )
+            #yield SplashRequest(url, self.parse,
+            #        endpoint='render.html', args={'wait': 2.5, 'lua_source': lua},
+            #        )
+            yield SplashRequest(url, self.parse, endpoint='execute', args={'lua_source': lua})
 
 
     def parse(self, response):
         GROCERY_SELECTOR='[data-automation-id="productTile"]'
         SPONSORED_SELECTOR='[data-automation-id="sponsoredProductTile"]'
         GROCERIES_SELECTOR=GROCERY_SELECTOR+','+SPONSORED_SELECTOR
+
+        html = response.body_as_unicode()
+        file = open("scraper.html","w")
+        n = file.write(html)
+        file.close()
+
         for grocery in response.css(GROCERIES_SELECTOR):
 
             NAME_SELECTOR   = '[data-automation-id="name"] ::attr(name)'
@@ -35,7 +51,7 @@ class grocerySpider(scrapy.Spider):
                     'price': grocery.css(PRICE_SELECTOR).extract_first(),
                     'price-per-unit': grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first(),
             }
-        inspect_response(response, self)
+        #inspect_response(response, self)
 """
         NEXT_PAGE_SELECTOR = '.next a ::attr(href)'
         next_page = response.css(NEXT_PAGE_SELECTOR).extract_first()
