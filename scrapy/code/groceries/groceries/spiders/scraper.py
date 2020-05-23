@@ -13,14 +13,33 @@ def read_script(script_file):
 
 class grocerySpider(scrapy.Spider):
     name = "grocery_spider"
-    start_urls = ['https://grocery.walmart.com/']#, 'https://grocery.walmart.com/products?aisle=1255027787131_1255027789453']
+    start_urls = ['https://grocery.walmart.com']
     #start_urls = ['https://www.target.com/c/grocery/-/N-5xt1a?Nao=0']
-    
+
     def start_requests(self):
         lua = read_script("buttonClick.lua")
         print ("Lua script: " + lua)
         for url in self.start_urls:
-            yield SplashRequest(url, self.parse, endpoint='execute', args={'lua_source': lua})
+            yield SplashRequest(url, self.scrape_urls, endpoint='execute', args={'lua_source': lua})
+
+    def scrape_urls(self,response):
+        #1. sort through data and extract urls
+        #2. put urls together
+        #3. Loop to each url, returning @parse
+        base_url=self.start_urls[0]
+        raw = response.body_as_unicode()
+        remove=['"','{','}',' ']
+        cleaned = raw
+        for char in remove :
+            cleaned = cleaned.replace(char,'')
+        comma_split=cleaned.split(',')
+        colon_split=[entry.split(':') for entry in comma_split]
+        urls=[entry[-1] for entry in colon_split]
+        print (urls)
+        for url_end in urls:
+            url = base_url + url_end
+            print (url)
+            yield SplashRequest(url, self.parse, endpoint='render.html',args={'wait':0.1})
 
 
     def parse(self, response):
@@ -28,11 +47,11 @@ class grocerySpider(scrapy.Spider):
         SPONSORED_SELECTOR='[data-automation-id="sponsoredProductTile"]'
         GROCERIES_SELECTOR=GROCERY_SELECTOR+','+SPONSORED_SELECTOR
 
-        html = response.body_as_unicode()
-        print (html)
-        file = open("scraper.html","w")
-        n = file.write(html)
-        file.close()
+        #html = response.body_as_unicode()
+        #print (html)
+        #file = open("scraper.html","w")
+        #n = file.write(html)
+        #file.close()
 
         for grocery in response.css(GROCERIES_SELECTOR):
 
