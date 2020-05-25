@@ -11,10 +11,11 @@ services:
      - backend
   scrapy:
      volumes:
-     - ./web:/web
      - ./scrapy/code:/code
      -  /tmp/.X11-unix:/tmp/.X11-unix
-     build: scrapy/
+     build: 
+       context: scrapy/
+       dockerfile: Dockerfile.debug
      hostname: scrapy
      environment: 
         - "DISPLAY"
@@ -24,6 +25,20 @@ services:
      - backend
      entrypoint:
      - "/bin/bash"
+  walmart:
+    volumes:
+    - ./scrapy/code:/code
+    build: 
+      context: scrapy/
+      dockerfile: Dockerfile.runtime
+    hostname: walmart-scrapy
+    depends_on:
+    - scrapy-middleware
+    - db
+    networks:
+    - backend
+    working_dir: /code/groceries/groceries/spiders/walmart
+    entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
   beautifulsoup:
     volumes: 
      - ./code:/code
