@@ -39,7 +39,7 @@ class grocerySpider(scrapy.Spider):
         for url_end in urls:
             url = base_url + url_end
             print (url)
-            yield SplashRequest(url, self.parse, endpoint='render.html',args={'wait':0.1})
+            yield SplashRequest(url, self.parse, endpoint='render.html',args={'wait':0.5})
 
 
     def parse(self, response):

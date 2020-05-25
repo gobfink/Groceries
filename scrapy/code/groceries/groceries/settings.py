@@ -93,3 +93,9 @@ HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+DB_SETTINGS = {
+  'db'= 'groceries',
+  'user' = 'root',
+  'passwd' = 'example',
+  'host' = 127.0.0.1,
+}
