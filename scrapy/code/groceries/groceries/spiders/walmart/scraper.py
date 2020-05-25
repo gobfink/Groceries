@@ -11,8 +11,8 @@ def read_script(script_file):
     file.close()
     return script
 
-class grocerySpider(scrapy.Spider):
-    name = "grocery_spider"
+class walmartSpider(scrapy.Spider):
+    name = "walmart_spider"
     start_urls = ['https://grocery.walmart.com']
     #start_urls = ['https://www.target.com/c/grocery/-/N-5xt1a?Nao=0']
 
@@ -39,7 +39,7 @@ class grocerySpider(scrapy.Spider):
         for url_end in urls:
             url = base_url + url_end
             print (url)
-            yield SplashRequest(url, self.parse, endpoint='render.html',args={'wait':0.1})
+            yield SplashRequest(url, self.parse, endpoint='render.html',args={'wait':0.5})
 
 
     def parse(self, response):
