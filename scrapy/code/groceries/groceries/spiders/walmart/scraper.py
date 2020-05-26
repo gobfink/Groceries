@@ -13,6 +13,7 @@ def read_script(script_file):
 
 class walmartSpider(scrapy.Spider):
     name = "walmart_spider"
+    store_name = "walmart"
     start_urls = ['https://grocery.walmart.com']
     #start_urls = ['https://www.target.com/c/grocery/-/N-5xt1a?Nao=0']
 
@@ -39,7 +40,7 @@ class walmartSpider(scrapy.Spider):
         for url_end in urls:
             url = base_url + url_end
             print (url)
-            yield SplashRequest(url, self.parse, endpoint='render.html',args={'wait':0.5})
+            yield SplashRequest(url, self.parse, endpoint='render.html',args={'wait':10})
 
 
     def parse(self, response):

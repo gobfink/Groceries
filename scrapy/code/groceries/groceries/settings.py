@@ -69,9 +69,9 @@ HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'groceries.pipelines.GroceriesPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'groceries.pipelines.GroceriesPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -97,5 +97,5 @@ DB_SETTINGS = {
   "db" : "groceries",
   "user" : "root",
   "passwd" : "example",
-  "host" : "127.0.0.1"
+  "host" : "db"
 }

@@ -10,45 +10,54 @@ from scrapy.exceptions import NotConfigured
 
 class GroceriesPipeline(object):
 
-	def __init__(self, db, user, passwd, host):
-		self.db = db
-		self.user = user
-		self.passwd = passwd
-		self.host = host
+        def __init__(self, db, user, passwd, host):
+                self.db = db
+                self.user = user
+                self.passwd = passwd
+                self.host = host
 
-	@classmethod
-	def from_crawler(cls, crawler):
-		db_settings = cralwer.settings.getdict('DB_SETTINGS')
-		if not db_settings:
-			raise NotConfigured
-		db = db_settings['db']
-		user = db_settings['user']
-		passwd = db_settings['passwd']
-		host = db_settings['host']
+        @classmethod
+        def from_crawler(cls, crawler):
+                db_settings = crawler.settings.getdict('DB_SETTINGS')
+                if not db_settings:
+                        raise NotConfigured
+                db = db_settings['db']
+                user = db_settings['user']
+                passwd = db_settings['passwd']
+                host = db_settings['host']
 
-		return cls(db, user, passwd, host)
-	def open_spider (self, spider):
-		self.conn = MySQLdb.connect(db=self.db, 
-			                      user=self.user,
-			                      passwd=self.passwd,
-			                      host=self.host,
-			                      charset='utf8', use_unicode=True)
+                return cls(db, user, passwd, host)
 
-		self.cursor = self.conn.cursor()
+        def open_spider(self, spider):
+                self.conn = MySQLdb.connect(db=self.db,
+                                              user=self.user,
+                                              passwd=self.passwd,
+                                              host=self.host,
+                                              charset='utf8', use_unicode=True)
 
-    def process_item(self, item, spider):
-        sql = "INSERT INTO table (field1, field2, field3) VALUES (%s, %s, %s)"
-        """
-        self.cursor.execute(sql,
-        	                ( item.get("field1"),
-        	                  item.get("field2"),
-        	                  item.get("field3"),
-        	                )
-        	)
-        self.conn.commit()
-        """
-        return item
+                self.cursor = self.conn.cursor()
 
-    def close_spider(self, spider):
-    	self.conn.close()
+        def process_item(self, item, spider):
+        # sql = "INSERT INTO table (field1, field2, field3) VALUES (%s, %s, %s)"
+        # TODO update the ids into the other values appropriately
+            sql = """ INSERT INTO groceryTable 
+                (name, price, ounces, brand, author_id, store_id,quality_id) 
+                  VALUES (%s,%d,%d,%s,0,1,3); 
+              """
+    
+            price = float(item.get("sale-price").replace('$', ''))
+
+            self.cursor.execute(sql,
+                            ( item.get("name"),
+                             price,
+                             1,
+                             "walmart-brand"
+                            )
+                           )
+            
+            self.conn.commit()
+            return item
+
+        def close_spider(self, spider):
+            self.conn.close()
 
