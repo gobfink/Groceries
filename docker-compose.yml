@@ -39,11 +39,6 @@ services:
     - backend
     working_dir: /code/groceries/groceries/spiders/walmart
     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
-  beautifulsoup:
-    volumes: 
-     - ./code:/code
-    build: .
-    hostname: beautifulsoup
   db:
     hostname: db
     image: mysql
