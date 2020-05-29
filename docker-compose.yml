@@ -35,6 +35,7 @@ services:
     depends_on:
     - scrapy-middleware
     - db
+    - adminer
     networks:
     - backend
     working_dir: /code/groceries/groceries/spiders/walmart
