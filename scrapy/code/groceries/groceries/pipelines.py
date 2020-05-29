@@ -40,21 +40,22 @@ class GroceriesPipeline(object):
         def process_item(self, item, spider):
         # sql = "INSERT INTO table (field1, field2, field3) VALUES (%s, %s, %s)"
         # TODO update the ids into the other values appropriately
-            sql = """ INSERT INTO groceryTable 
-                (name, price, ounces, brand, author_id, store_id,quality_id) 
-                  VALUES (%s,%d,%d,%s,0,1,3); 
-              """
-    
-            price = float(item.get("sale-price").replace('$', ''))
-
-            self.cursor.execute(sql,
-                            ( item.get("name"),
-                             price,
-                             1,
-                             "walmart-brand"
-                            )
-                           )
-            
+            name = item.get("name")
+            price = item.get("sale-price")
+            #print ("price : "+price)
+            if price is None:
+                price = 0
+            else:
+                price = float(price.replace('$',''))
+            #price = float(item.get("sale-price").replace('$', ''))
+            ounces = 1
+            brand = "walmart-brand"
+            author_id = 0
+            store_id = 1
+            quality_id = 3
+            sql = f" INSERT INTO groceryTable (name, price, ounces, brand, author_id, store_id, quality_id) VALUES (\"{name}\",{price},{ounces},\"{brand}\",{author_id},{store_id},{quality_id});"
+            #print ( "adding sql : "+ sql )
+            self.cursor.execute(sql)
             self.conn.commit()
             return item
 
