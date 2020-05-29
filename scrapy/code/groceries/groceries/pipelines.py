@@ -6,6 +6,9 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 import MySQLdb
+import datetime
+import time
+
 from scrapy.exceptions import NotConfigured
 
 class GroceriesPipeline(object):
@@ -29,13 +32,33 @@ class GroceriesPipeline(object):
                 return cls(db, user, passwd, host)
 
         def open_spider(self, spider):
+                self.store_name = spider.store_name
+                self.date = datetime.datetime.now()
                 self.conn = MySQLdb.connect(db=self.db,
                                               user=self.user,
                                               passwd=self.passwd,
                                               host=self.host,
                                               charset='utf8', use_unicode=True)
-
+                print("store_name: " + self.store_name)
+                store_query=f"SELECT id FROM storeTable where name='{self.store_name}'"
+                print ("store_query: "+ (store_query))
                 self.cursor = self.conn.cursor()
+                self.cursor.execute(store_query)
+                fetched_id=self.cursor.fetchone()
+                if fetched_id is None:
+                    add_store = f"INSERT INTO storeTable (name) VALUES (\"{self.store_name}\");"
+                    print(add_store)
+                    self.cursor.execute(add_store)
+                    self.conn.commit()
+                    time.sleep(.5)
+
+                    self.cursor.execute(store_query)
+                    fetched_id=self.cursor.fetchone()
+
+                    #self.cursor.execute()
+                self.store_id=fetched_id[0]
+
+                #TODO if doesn't exist add into and use that id
 
         def process_item(self, item, spider):
         # sql = "INSERT INTO table (field1, field2, field3) VALUES (%s, %s, %s)"
@@ -45,15 +68,18 @@ class GroceriesPipeline(object):
             #print ("price : "+price)
             if price is None:
                 price = 0
+                print ("No price detected skipping - " + name)
+                return item
             else:
                 price = float(price.replace('$',''))
             #price = float(item.get("sale-price").replace('$', ''))
             ounces = 1
             brand = "walmart-brand"
+            date = self.date
             author_id = 0
-            store_id = 1
+            store_id = self.store_id
             quality_id = 3
-            sql = f" INSERT INTO groceryTable (name, price, ounces, brand, author_id, store_id, quality_id) VALUES (\"{name}\",{price},{ounces},\"{brand}\",{author_id},{store_id},{quality_id});"
+            sql = f" INSERT INTO groceryTable (name, price, ounces, date, brand, author_id, store_id, quality_id) VALUES (\"{name}\",{price},{ounces},\"{date}\",\"{brand}\",{author_id},{store_id},{quality_id});"
             #print ( "adding sql : "+ sql )
             self.cursor.execute(sql)
             self.conn.commit()
