@@ -23,10 +23,16 @@ function main(splash, args)
     local section_links={}
     for j, link in ipairs(links) do
       --scrape-links
-      local dataId = link.node:getAttribute("data-automation-id")
+      local dataId = tostring(link.node:getAttribute("data-automation-id"))
+      --workaround due to lack of gsub support
+      --local commaStart, commaEnd = dataId:find(',')
+      --if commaStart then
+      --  dataId1 = dataId:sub(1,commaStart - 1)
+      --  dataId2 = dataId:sub(commaStart+1, -1)
+      --  dataId = dataId1 .. dataId2
+      --end
       local href = link.node:getAttribute("href")
       section_links[dataId] = href
-      --table.insert(ids,id)
       table.insert(hrefs,href)    
     end
     sections[section_name]=section_links
@@ -35,7 +41,7 @@ function main(splash, args)
  
   return {
     --labels = labels,
-    hrefs = hrefs,
+    --hrefs = hrefs,
     sections = sections,
     --el = element.nodeName,
     --html = splash:html(),

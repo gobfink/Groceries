@@ -21,10 +21,13 @@ services:
         - "DISPLAY"
      depends_on:
      -  scrapy-middleware
+     -  db
+     -  adminer
      networks:
      - backend
      entrypoint:
      - "/bin/bash"
+     working_dir: /code/groceries/groceries/spiders/walmart
   walmart:
     volumes:
     - ./scrapy/code:/code

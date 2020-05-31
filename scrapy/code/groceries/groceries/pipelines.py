@@ -39,12 +39,12 @@ class GroceriesPipeline(object):
                                               passwd=self.passwd,
                                               host=self.host,
                                               charset='utf8', use_unicode=True)
-                print("store_name: " + self.store_name)
+                #Look for the store in the store_table
                 store_query=f"SELECT id FROM storeTable where name='{self.store_name}'"
-                print ("store_query: "+ (store_query))
                 self.cursor = self.conn.cursor()
                 self.cursor.execute(store_query)
                 fetched_id=self.cursor.fetchone()
+                #if it doesn't exist then add it
                 if fetched_id is None:
                     add_store = f"INSERT INTO storeTable (name) VALUES (\"{self.store_name}\");"
                     print(add_store)
@@ -55,17 +55,15 @@ class GroceriesPipeline(object):
                     self.cursor.execute(store_query)
                     fetched_id=self.cursor.fetchone()
 
-                    #self.cursor.execute()
                 self.store_id=fetched_id[0]
-
-                #TODO if doesn't exist add into and use that id
 
         def process_item(self, item, spider):
         # sql = "INSERT INTO table (field1, field2, field3) VALUES (%s, %s, %s)"
         # TODO update the ids into the other values appropriately
             name = item.get("name")
             price = item.get("sale-price")
-            #print ("price : "+price)
+            section = item.get("section")
+            subsection = item.get("subsection")
             if price is None:
                 price = 0
                 print ("No price detected skipping - " + name)
@@ -74,12 +72,13 @@ class GroceriesPipeline(object):
                 price = float(price.replace('$',''))
             #price = float(item.get("sale-price").replace('$', ''))
             ounces = 1
+            reported_price_per_unit = item.get("price-per-unit")
             brand = "walmart-brand"
             date = self.date
-            author_id = 0
             store_id = self.store_id
-            quality_id = 3
-            sql = f" INSERT INTO groceryTable (name, price, ounces, date, brand, author_id, store_id, quality_id) VALUES (\"{name}\",{price},{ounces},\"{date}\",\"{brand}\",{author_id},{store_id},{quality_id});"
+            #TODO break this into multiple lines
+            sql = f" INSERT INTO groceryTable (name, section, subsection, price, ounces,reported_price_per_unit, brand, date, store_id) VALUES (\"{name}\",\"{section}\",\"{subsection}\",{price},{ounces},\"{reported_price_per_unit}\",\"{brand}\",\"{date}\",{store_id});"
+
             #print ( "adding sql : "+ sql )
             self.cursor.execute(sql)
             self.conn.commit()
