@@ -39,16 +39,16 @@ class walmartSpider(scrapy.Spider):
         base_url = self.start_urls[0]
         self.raw = response.body_as_unicode()
         print("raw: " + self.raw)
-        remove = ['{', '}', 'Link']
+        remove = ['{', '}', 'Link', ' ']
         self.cleaned = self.raw
         for char in remove:
             self.cleaned = self.cleaned.replace(char, '')
-        self.comma_split = self.cleaned.split('", "')
+        self.comma_split = self.cleaned.split('","')
         #print ("cleaned - " + cleaned)
         #print ("comma_split - " )
         #print (*comma_split)
-        self.colon_split = [entry.split('": "') for entry in self.comma_split]
-        inspect_response(response, self)
+        self.colon_split = [entry.split('":"') for entry in self.comma_split]
+        #inspect_response(response, self)
         self.colon_split[0].remove('"sections')
         #print ("colon_split - ")
         #print (*colon_split)
