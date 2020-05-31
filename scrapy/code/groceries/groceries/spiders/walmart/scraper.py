@@ -39,26 +39,27 @@ class walmartSpider(scrapy.Spider):
         base_url = self.start_urls[0]
         self.raw = response.body_as_unicode()
         print("raw: " + self.raw)
-        remove = ['"', '{', '}', ' ', 'Link']
+        remove = ['{', '}', 'Link']
         self.cleaned = self.raw
         for char in remove:
             self.cleaned = self.cleaned.replace(char, '')
-        self.comma_split = self.cleaned.split(',')
+        self.comma_split = self.cleaned.split('", "')
         #print ("cleaned - " + cleaned)
         #print ("comma_split - " )
         #print (*comma_split)
-        self.colon_split = [entry.split(':') for entry in self.comma_split]
-        self.colon_split[0].remove("sections")
+        self.colon_split = [entry.split('": "') for entry in self.comma_split]
+        inspect_response(response, self)
+        self.colon_split[0].remove('"sections')
         #print ("colon_split - ")
         #print (*colon_split)
         self.urls = [entry[-1] for entry in self.colon_split]
+        print("urls - ")
         print(self.urls)
 
         self.section = "unset"
         self.subsection = "unset"
 
         self.section_dict = {}
-        #        inspect_response(response, self)
         for entry in self.colon_split:
 
             # each entry will have a subheading (normally at 0 unless it has a heading entry)
@@ -87,7 +88,6 @@ class walmartSpider(scrapy.Spider):
         url = response.url
         section = self.section_dict[url][0]
         subsection = self.section_dict[url][1]
-        #inspect_response(response,self)
         for grocery in response.css(GROCERIES_SELECTOR):
 
             NAME_SELECTOR = '[data-automation-id="name"] ::attr(name)'

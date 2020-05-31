@@ -24,13 +24,6 @@ function main(splash, args)
     for j, link in ipairs(links) do
       --scrape-links
       local dataId = tostring(link.node:getAttribute("data-automation-id"))
-      --workaround due to lack of gsub support
-      --local commaStart, commaEnd = dataId:find(',')
-      --if commaStart then
-      --  dataId1 = dataId:sub(1,commaStart - 1)
-      --  dataId2 = dataId:sub(commaStart+1, -1)
-      --  dataId = dataId1 .. dataId2
-      --end
       local href = link.node:getAttribute("href")
       section_links[dataId] = href
       table.insert(hrefs,href)    
