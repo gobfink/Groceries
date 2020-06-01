@@ -3,6 +3,7 @@
 import scrapy
 from scrapy.shell import inspect_response
 from scrapy_splash import SplashRequest
+import re
 
 
 #TODO move this to a utility file?
@@ -89,8 +90,16 @@ class walmartSpider(scrapy.Spider):
         section = self.section_dict[url][0]
         subsection = self.section_dict[url][1]
         for grocery in response.css(GROCERIES_SELECTOR):
-
             NAME_SELECTOR = '[data-automation-id="name"] ::attr(name)'
+            self.name=grocery.css(NAME_SELECTOR).extract_first()
+            #parse the ounces off of the name
+            self.ounces=re.findall("([\d]+[.]?[\d]*)\s*[Oo][zunce]",self.name)
+            # assume its the first entry
+            if self.ounces:
+                self.ounces = float(self.ounces[0])
+            else:
+                self.ounces = 0 
+            #inspect_response(response,self)
             SALEPRICE_SELECTOR = '[data-automation-id="salePrice"] ::text'
             PRICE_SELECTOR = '[data-automation-id="price"] ::text'
             PRICE_PER_UNIT_SELECTOR = '[data-automation-id="price-per-unit"] ::text'
@@ -98,6 +107,8 @@ class walmartSpider(scrapy.Spider):
             yield {
                 'name':
                 grocery.css(NAME_SELECTOR).extract_first(),
+                'ounces':
+                self.ounces,
                 'sale-price':
                 grocery.css(SALEPRICE_SELECTOR).extract_first(),
                 'price':

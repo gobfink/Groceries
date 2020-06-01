@@ -64,14 +64,14 @@ class GroceriesPipeline(object):
             price = item.get("sale-price")
             section = item.get("section")
             subsection = item.get("subsection")
-            if price is None:
+            ounces = item.get("ounces")
+            if price:
+                price = float(price.replace('$',''))
+            else:
                 price = 0
                 print ("No price detected skipping - " + name)
                 return item
-            else:
-                price = float(price.replace('$',''))
-            #price = float(item.get("sale-price").replace('$', ''))
-            ounces = 1
+
             reported_price_per_unit = item.get("price-per-unit")
             brand = "walmart-brand"
             date = self.date
