@@ -103,7 +103,7 @@ class walmartSpider(scrapy.Spider):
             self.name = grocery.css(NAME_SELECTOR).extract_first()
             #parse the ounces off of the name
             decimal_regex = "([\d]+[.]?[\d]*|[.\d]+)"
-            self.ounces = re.findall(decimal_regex + "\s*o(?:z|unces)",
+            self.ounces = re.findall(decimal_regex + "\s*o(?:z|unces?)",
                                      self.name, re.IGNORECASE)
             self.pounds = re.findall(decimal_regex + "\s*(?:pound|lb)s?",
                                      self.name, re.IGNORECASE)
