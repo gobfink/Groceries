@@ -14,6 +14,14 @@ def read_script(script_file):
     return script
 
 
+def parse_float(input_list):
+    if input_list:
+        f = float(input_list[0])
+    else:
+        f = 0
+    return f
+
+
 class walmartSpider(scrapy.Spider):
     name = "walmart_spider"
     store_name = "walmart"
@@ -25,13 +33,10 @@ class walmartSpider(scrapy.Spider):
         lua = read_script("buttonClick.lua")
         print("Lua script: " + lua)
         for url in self.start_urls:
-            yield SplashRequest(
-                url,
-                self.scrape_urls,
-                endpoint='execute',
-                args={
-                    'lua_source': lua
-                })
+            yield SplashRequest(url,
+                                self.scrape_urls,
+                                endpoint='execute',
+                                args={'lua_source': lua})
 
     def scrape_urls(self, response):
         #1. sort through data and extract urls
@@ -77,10 +82,14 @@ class walmartSpider(scrapy.Spider):
             self.section_dict[url] = (self.section, self.subsection)
 
             print(self.section, self.subsection, url)
-            yield SplashRequest(
-                url, self.parse, endpoint='render.html', args={
-                    'wait': 10, 'section': self.section, 'subsection': self.subsection
-                })
+            yield SplashRequest(url,
+                                self.parse,
+                                endpoint='render.html',
+                                args={
+                                    'wait': 10,
+                                    'section': self.section,
+                                    'subsection': self.subsection
+                                })
 
     def parse(self, response):
         GROCERY_SELECTOR = '[data-automation-id="productTile"]'
@@ -91,15 +100,21 @@ class walmartSpider(scrapy.Spider):
         subsection = self.section_dict[url][1]
         for grocery in response.css(GROCERIES_SELECTOR):
             NAME_SELECTOR = '[data-automation-id="name"] ::attr(name)'
-            self.name=grocery.css(NAME_SELECTOR).extract_first()
+            self.name = grocery.css(NAME_SELECTOR).extract_first()
             #parse the ounces off of the name
-            self.ounces=re.findall("([\d]+[.]?[\d]*)\s*[Oo][zunce]",self.name)
-            # assume its the first entry
-            if self.ounces:
-                self.ounces = float(self.ounces[0])
-            else:
-                self.ounces = 0 
-            #inspect_response(response,self)
+            decimal_regex = "([\d]+[.]?[\d]*|[.\d]+)"
+            self.ounces = re.findall(decimal_regex + "\s*o(?:z|unces)",
+                                     self.name, re.IGNORECASE)
+            self.pounds = re.findall(decimal_regex + "\s*(?:pound|lb)s?",
+                                     self.name, re.IGNORECASE)
+            self.count = re.findall("([\d]+)\s*(?:c(?:t|ount)|p(?:k|ack))",
+                                    self.name, re.IGNORECASE)
+
+            self.ounces = parse_float(self.ounces)
+            self.pounds = parse_float(self.pounds)
+            self.count = parse_float(self.count)
+
+            #            inspect_response(response,self)
             SALEPRICE_SELECTOR = '[data-automation-id="salePrice"] ::text'
             PRICE_SELECTOR = '[data-automation-id="price"] ::text'
             PRICE_PER_UNIT_SELECTOR = '[data-automation-id="price-per-unit"] ::text'
@@ -109,6 +124,10 @@ class walmartSpider(scrapy.Spider):
                 grocery.css(NAME_SELECTOR).extract_first(),
                 'ounces':
                 self.ounces,
+                'pounds':
+                self.pounds,
+                'count':
+                self.count,
                 'sale-price':
                 grocery.css(SALEPRICE_SELECTOR).extract_first(),
                 'price':
