@@ -114,6 +114,11 @@ class walmartSpider(scrapy.Spider):
             self.pounds = parse_float(self.pounds)
             self.count = parse_float(self.count)
 
+            if self.pounds != 0:
+                self.ounces = 16*self.pounds
+            elif self.count != 0:
+                self.ounces *= self.count
+
             #            inspect_response(response,self)
             SALEPRICE_SELECTOR = '[data-automation-id="salePrice"] ::text'
             PRICE_SELECTOR = '[data-automation-id="price"] ::text'
