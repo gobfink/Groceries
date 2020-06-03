@@ -11,23 +11,31 @@ function main(splash, args)
   section_buttons = splash:select_all('[class^="NavigationPanel__item"] [data-automation-id$="Btn"]')
 
   hrefs={}
+  sections={}
   for i, section in ipairs(section_buttons) do
+    local section_name = section.node:getAttribute("aria-label")
+    
     local section_bounds = section:bounds()
     --click each section
     assert(section:mouse_click{x=section_bounds.width/2, y=section_bounds.height/2})
     
     links = splash:select_all('[class^="NavigationPanel__aisleLink"]')
+    local section_links={}
     for j, link in ipairs(links) do
       --scrape-links
+      local dataId = tostring(link.node:getAttribute("data-automation-id"))
       local href = link.node:getAttribute("href")
+      section_links[dataId] = href
       table.insert(hrefs,href)    
     end
+    sections[section_name]=section_links
     assert(splash:wait(.1))
   end
  
   return {
     --labels = labels,
-    hrefs = hrefs,
+    --hrefs = hrefs,
+    sections = sections,
     --el = element.nodeName,
     --html = splash:html(),
     --png = splash:png(),

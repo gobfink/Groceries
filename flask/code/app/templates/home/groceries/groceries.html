@@ -40,12 +40,6 @@
              </form>
              <hr class="intro-divider">
           </div>
-          <div style="text-align: center">
-          <a href="{{ url_for('home.add_grocery') }}" class="btn btn-default btn-lg">
-            <i class="fa fa-plus"></i>
-            Add Grocery
-          </a>
-          </div>
           <div class="center">
             <table width="100%" class="table table-striped table-bordered">
                 <thead>
@@ -53,18 +47,9 @@
                     {% for title in column_titles %}
                     <th> <a> {{ title }} </a></th>
                     {% endfor %}
-                  {% if current_user.is_active %}
-                  <th width="10%"> Edit </th>
-                  {% endif %}
-                  {% if current_user.userIsAdmin == 1 %}
-                  <th width="10%"> Delete </th>
-                  {% endif %}
                 </tr>
               </thead>
                 <tbody>
-                {% for q_groc in groceries_queried  %}
-                    {{ q_groc.author_id.name }}
-                {% endfor %}
                 {% for grocery in g_list %}
                 <tr>
                     {% for field, value in grocery.items() %}
@@ -83,11 +68,6 @@
         {% endif %}
          {{subcount}} of {{totalcount}} records showing 
          <p />
-            <!--TODO change this to add grocery and implement method-->
-          <a href="{{ url_for('home.add_grocery') }}" class="btn btn-default btn-lg">
-            <i class="fa fa-plus"></i>
-            Add Grocery
-          </a>
         </div>
       </div>
     </div>

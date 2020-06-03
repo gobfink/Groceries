@@ -1,2 +1,2 @@
 FROM python
-RUN pip install scrapy ; pip install scrapy-splash
+RUN pip install scrapy ; pip install scrapy-splash ; pip install mysqlclient

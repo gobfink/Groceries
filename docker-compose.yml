@@ -21,10 +21,13 @@ services:
         - "DISPLAY"
      depends_on:
      -  scrapy-middleware
+     -  db
+     -  adminer
      networks:
      - backend
      entrypoint:
      - "/bin/bash"
+     working_dir: /code/groceries/groceries/spiders/walmart
   walmart:
     volumes:
     - ./scrapy/code:/code
@@ -35,6 +38,7 @@ services:
     depends_on:
     - scrapy-middleware
     - db
+    - adminer
     networks:
     - backend
     working_dir: /code/groceries/groceries/spiders/walmart
@@ -81,7 +85,8 @@ services:
     environment:
       FLASK_CONFIG: development
       FLASK_APP: run.py
-
+    depends_on:
+      - db
 networks:
   frontend:
   backend:

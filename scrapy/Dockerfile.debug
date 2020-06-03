@@ -1,4 +1,4 @@
 FROM python
-RUN pip install scrapy ; pip install scrapy-splash
+RUN pip install scrapy ; pip install scrapy-splash ; pip install mysqlclient
 RUN apt update ; apt install -y firefox-esr vim
 
