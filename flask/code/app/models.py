@@ -104,16 +104,6 @@ class Tag(db.Model):
     def __repr__(self):
        return '<Tag: {}>'.format(self.tag)
 
-# quality_table
-class db_quality(db.Model):
-    __tablename__ = 'qualityTable'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
-    groceries_quality = db.relationship('db_Grocery', backref='quality', lazy='dynamic')
-
-    def __repr__(self):
-        return '<Quality:%s>' % format(self.name)
-    
 #store_table
 class db_store(db.Model):
     __tablename__ = 'storeTable'
@@ -124,16 +114,6 @@ class db_store(db.Model):
     def __repr__(self):
         return '<Store: %s>' %format(self.name)
 
-#author_table
-class db_author(db.Model):
-    __tablename__ = 'authorTable'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
-    groceries_author = db.relationship('db_Grocery', backref='author', lazy='dynamic')
-
-    def __repr__(self):
-        return '<Author: %s>' %format(self.name)
 
 class db_Grocery(db.Model):
     """
@@ -144,19 +124,17 @@ class db_Grocery(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
+    section = db.Column(db.String(60))
+    subsection = db.Column(db.String(60))
     price = db.Column(db.Float)
     ounces = db.Column(db.Float)
-    price_density = db.column_property(price/ounces)
+    reported_price_per_unit = db.Column(db.String(30))
     brand = db.Column(db.String(80))
-    #quality_id = db.Column(db.Integer, db.ForeignKey('db_quality.id'))
-    #quality_relationship = db.relationship('db_groceries', backref='quality', lazy='dynamic')
-
-    # quality_name = db.Column(db.Integer, db.ForeignKey('quality_table.name'))
-
     date = db.Column(db.DateTime, default=False)
-    author_id = db.Column(db.Integer, db.ForeignKey('authorTable.id'))
+    price_density = db.column_property(price/ounces)
     store_id = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
-    quality_id = db.Column(db.Integer, db.ForeignKey('qualityTable.id'))
+
+
     #TODO convert ids into values this will require pulling down the other tables, and somehow referencing them
     #column_sortable_list = ('acronym', 'definition', 'author.userLN')
 

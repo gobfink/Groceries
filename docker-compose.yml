@@ -85,7 +85,8 @@ services:
     environment:
       FLASK_CONFIG: development
       FLASK_APP: run.py
-
+    depends_on:
+      - db
 networks:
   frontend:
   backend:

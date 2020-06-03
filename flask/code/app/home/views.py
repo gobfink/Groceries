@@ -3,7 +3,7 @@ import datetime
 from wtforms import BooleanField
 from flask import abort, render_template, redirect, flash, url_for, request
 from flask_login import current_user, login_required
-from ..models import Acronym, Tag, AcroTag, User, db_Grocery, db_quality, db_store, db_author
+from ..models import Acronym, Tag, AcroTag, User, db_Grocery, db_store
 from .. import db
 
 from .forms import AcronymsForm, AcronymSearchForm, AddTagForm, GroceryForm, GrocerySearchForm
@@ -35,7 +35,7 @@ def groceries():
     """
     grocery_list = []
 
-    columns_to_display = ['id', 'name', 'author', 'price', 'ounces', 'price_density', 'brand', 'date', 'quality',
+    columns_to_display = ['id', 'name', 'section', 'subsection', 'price', 'ounces', 'reported_price_per_unit', 'price_density', 'brand', 'date',
                           'store']
     grocery_search = GrocerySearchForm(request.form)
 
@@ -58,8 +58,6 @@ def groceries():
         # Do all of the direct fields first
         raw = grocery.__dict__
         # Manually add all backrefs to the raw dict
-        raw['author'] = grocery.author.name
-        raw['quality'] = grocery.quality.name
         raw['store'] = grocery.store.name
 
         fields = {field: raw[field] for field in columns_to_display}
