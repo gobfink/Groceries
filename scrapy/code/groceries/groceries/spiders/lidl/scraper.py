@@ -5,15 +5,6 @@ from scrapy.shell import inspect_response
 from scrapy_splash import SplashRequest
 import re
 
-# Navigate to Lidl/products
-# grab all urls on menu
-# click on section 2+
-# click on more
-# scroll down
-# scrape groceries
-
-
-
 #TODO move this to a utility file?
 def read_script(script_file):
     file = open(script_file)
@@ -34,16 +25,14 @@ class lidlScraper(scrapy.Spider):
     name = "lidl_spider"
     store_name = "lidl"
     start_urls = ['https://www.lidl.com/products']
-
-    #start_urls = ['https://www.target.com/c/grocery/-/N-5xt1a?Nao=0']
+    base_url = "https://www.lidl.com"
+    expand_and_scroll_lua = read_script("prepareForScraping.lua")
 
     def start_requests(self):
-        #lua = read_script("buttonClick.lua")
-        #print("Lua script: " + lua)
+        print ("lua script - " + self.expand_and_scroll_lua)
         for url in self.start_urls:
             yield SplashRequest(url,
                                 self.isTop,
-                                endpoint='render.html',
                                 args={'wait': 0.5})
 
     def isTop(self, response):
@@ -53,17 +42,34 @@ class lidlScraper(scrapy.Spider):
         # if its not, then it calls the lua to prepare the page 
         # for scraping, and then scrapes it  
         menu = response.css(".category-filter__link")
-        if (menu[0].css('[aria-current="page"]')):
+        print ("processing response.url - " + response.url)
+        print ("menu: ")
+        print (menu.getall())
+        print ("len(menu): " + str(len(menu)))
+        if (len(menu) > 0  and menu[0].css('[aria-current="page"]')):
+            print("top page active - for "+ menu[0].get())
+            urls=menu.css('::attr(href)').getall()
+            # Remove the the first(this) page from list to parse
+            urls.pop()
+            for url_suffix in urls:
+                url = self.base_url + url_suffix
+                print ("pulling from url - " + url)
+                yield SplashRequest(url,
+                                self.isTop,
+                                endpoint='execute',
+                                args={'lua_source': self.expand_and_scroll_lua})
+
             # The top page is active
             # therefore we need to scrape the links, and continue searching
-            print("top page active")
+            # we then need to loop through each other page.
+            # call isTop, and scrape it is not
         else:
             #we are on a subpage, so now we can start scraping
-            print("subpage - scraping")
+            print("subpage - scraping " + response.url)
+            #inspect_response(response, self)
             #    
         #active
-        print(menu)
-        inspect_response(response, self)
+        #print(menu)
 
     def scrape_urls(self, response):
         #1. sort through data and extract urls
