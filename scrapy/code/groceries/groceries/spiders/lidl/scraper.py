@@ -37,7 +37,16 @@ class lidlScraper(scrapy.Spider):
         print ("menu: ")
         print (menu.getall())
         print ("len(menu): " + str(len(menu)))
+        self.section_dict = {}
         if (len(menu) > 0  and menu[0].css('[aria-current="page"]')):
+            for item in menu:
+                heading = item.css('.category-filter__text ::text').get()
+                url = item.css('::attr(href)').get()
+                url = self.base_url+url
+                self.section_dict[url]=heading
+
+            inspect_response(response, self)
+
             print("top page active - for "+ menu[0].get())
             urls=menu.css('::attr(href)').getall()
             # Remove the the first(this) page from list to parse
@@ -65,7 +74,7 @@ class lidlScraper(scrapy.Spider):
             PRICE_PER_UNIT_SELECTOR = '.sub-headline.detail-card-subtext ::text'
             
             url = response.url
-            section = "" #self.section_dict[url][0]
+            section = self.section_dict[url]
             subsection = "" #self.section_dict[url][1]
             for grocery in response.css(GROCERY_SELECTOR):
                 self.name = grocery.css(NAME_SELECTOR).extract_first()
