@@ -61,7 +61,7 @@ class GroceriesPipeline(object):
         # sql = "INSERT INTO table (field1, field2, field3) VALUES (%s, %s, %s)"
         # TODO update the ids into the other values appropriately
             name = item.get("name")
-            price = item.get("sale-price")
+            price = item.get("price")
             section = item.get("section")
             subsection = item.get("subsection")
             ounces = item.get("ounces")
@@ -73,7 +73,7 @@ class GroceriesPipeline(object):
                 return item
 
             reported_price_per_unit = item.get("price-per-unit")
-            brand = "walmart-brand"
+            brand = ""
             date = self.date
             store_id = self.store_id
             #TODO break this into multiple lines
