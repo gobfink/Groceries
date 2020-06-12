@@ -10,6 +10,11 @@ import datetime
 import time
 
 from scrapy.exceptions import NotConfigured
+def handle_none(arg):
+    if arg is None:
+        return 0
+    else:
+        return arg
 
 class GroceriesPipeline(object):
 
@@ -61,18 +66,12 @@ class GroceriesPipeline(object):
         # sql = "INSERT INTO table (field1, field2, field3) VALUES (%s, %s, %s)"
         # TODO update the ids into the other values appropriately
             name = item.get("name")
-            price = item.get("price")
-            section = item.get("section")
-            subsection = item.get("subsection")
-            ounces = item.get("ounces")
-            if price:
-                price = float(price.replace('$',''))
-            else:
-                price = 0
-                print ("No price detected skipping - " + name)
-                return item
+            price = float(handle_none(item.get("price")))
+            section = handle_none(item.get("section"))
+            subsection = handle_none(item.get("subsection"))
+            ounces = handle_none(item.get("ounces"))
 
-            reported_price_per_unit = item.get("price-per-unit")
+            reported_price_per_unit = handle_none(item.get("price-per-unit"))
             brand = ""
             date = self.date
             store_id = self.store_id

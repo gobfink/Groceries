@@ -28,6 +28,21 @@ services:
      entrypoint:
      - "/bin/bash"
      working_dir: /code/groceries/groceries/spiders/lidl
+  lidl:
+    volumes:
+    - ./scrapy/code:/code
+    build: 
+      context: scrapy/
+      dockerfile: Dockerfile.runtime
+    hostname: lidl-scrapy
+    depends_on:
+    - scrapy-middleware
+    - db
+    - adminer
+    networks:
+    - backend
+    working_dir: /code/groceries/groceries/spiders/lidl
+    entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
   walmart:
     volumes:
     - ./scrapy/code:/code

@@ -12,15 +12,6 @@ def read_script(script_file):
     file.close()
     return script
 
-
-def parse_float(input_list):
-    if input_list:
-        f = float(input_list[0])
-    else:
-        f = 0
-    return f
-
-
 class lidlScraper(scrapy.Spider):
     name = "lidl_spider"
     store_name = "lidl"
@@ -55,7 +46,7 @@ class lidlScraper(scrapy.Spider):
                 url = self.base_url + url_suffix
                 print ("pulling from url - " + url)
                 yield SplashRequest(url,
-                                self.isTop,
+                                self.parse,
                                 endpoint='execute',
                                 args={'lua_source': self.expand_and_scroll_lua})
 
@@ -67,29 +58,31 @@ class lidlScraper(scrapy.Spider):
             #we are on a subpage, so now we can start scraping
             print("subpage - scraping " + response.url)
             #    
-        	GROCERY_SELECTOR = '.grid-item'
-        	NAME_SELECTOR = '.small-type.detail-card-description ::text'
-        	PRICE_SELECTOR = '.price ::text'
-        	PRICE_PER_UNIT_SELECTOR = '.sub-headline.detail-card-subtext ::text'
-        	
-        	url = response.url
-        	section = "" #self.section_dict[url][0]
-        	subsection = "" #self.section_dict[url][1]
-        	for grocery in response.css(GROCERY_SELECTOR):
-        		inspect_response(response, self)
-        	    self.name = grocery.css(NAME_SELECTOR).extract_first()
-        	    self.price = grocery.css(PRICE_SELECTOR).extract_first()
-        	    self.ppu = grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first()
-        	    #parse the ounces off of the name
-        	    yield {
-        	        'name':
-        	        self.name,
-        	        'price':
-        	        self.price,
-        	        'price-per-unit':
-        	        self.ppu,
-        	        'section':
-        	        section,
-        	        'subsection':
-        	        subsection,
-        	    }
+        
+            GROCERY_SELECTOR = '.grid-item'
+            NAME_SELECTOR = '.small-type.detail-card-description ::text'
+            PRICE_SELECTOR = '.price ::text'
+            PRICE_PER_UNIT_SELECTOR = '.sub-headline.detail-card-subtext ::text'
+            
+            url = response.url
+            section = "" #self.section_dict[url][0]
+            subsection = "" #self.section_dict[url][1]
+            for grocery in response.css(GROCERY_SELECTOR):
+                self.name = grocery.css(NAME_SELECTOR).extract_first()
+                self.price = grocery.css(PRICE_SELECTOR).extract_first()
+                self.price = self.price.replace('*','').replace('$','')
+                self.ppu = grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first()
+                #inspect_response(response, self)
+                #parse the ounces off of the name
+                yield {
+                    'name':
+                    self.name,
+                    'price':
+                    self.price,
+                    'price-per-unit':
+                    self.ppu,
+                    'section':
+                    section,
+                    'subsection':
+                    subsection,
+                }

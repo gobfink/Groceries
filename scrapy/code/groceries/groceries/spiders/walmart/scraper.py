@@ -134,7 +134,7 @@ class walmartSpider(scrapy.Spider):
                 'count':
                 self.count,
                 'price':
-                grocery.css(SALEPRICE_SELECTOR).extract_first(),
+                grocery.css(SALEPRICE_SELECTOR).extract_first().replace('$',''),
                 'price-per-unit':
                 grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first(),
                 'section':
