@@ -38,19 +38,19 @@ class lidlScraper(scrapy.Spider):
         
         menu = response.css(".category-filter__link")
         #submenu = response.css("")
-        print ("self.urls - " +str(self.urls))
+        #print ("self.urls - " +str(self.urls))
         print ("processing response.url - " + response.url)
 
         #print ("menu: ")
         #print (menu.getall())
-        print ("len(menu): " + str(len(menu)))
-        print ("menu[0] : " + menu.get())
-        print("name - " + menu[0].css('.category-filter__text ::text').get())
+        #print ("len(menu): " + str(len(menu)))
+        #print ("menu[0] : " + menu.get())
+        #print("name - " + menu[0].css('.category-filter__text ::text').get())
         #inspect_response(response,self)
 
         if (len(menu) > 0  and menu[0].css('[aria-current="page"]')):
-            print ("menu[0] : [aria-current=page] " + menu[0].css('[aria-current="page"]').get())
             # The top page is active
+            #print ("menu[0] : [aria-current=page] " + menu[0].css('[aria-current="page"]').get())
             # therefore we need to scrape the links, and continue searching
             # we then need to loop through each other page.
             # call parse, and scrape it is not
