@@ -61,7 +61,7 @@ class lidlScraper(scrapy.Spider):
                 heading = item.css('.category-filter__text ::text').get()
                 url = item.css('::attr(href)').get()
                 url = self.base_url+url
-                self.section_dict[url]=heading
+                self.section_dict[url]=(menu_name, heading)
                 if self.urls.count(url) == 0:
                     self.urls.append(url)
 
@@ -100,9 +100,10 @@ class lidlScraper(scrapy.Spider):
             PRICE_PER_UNIT_SELECTOR = '.sub-headline.detail-card-subtext ::text'
             
             url = response.url
-            section = self.section_dict[url]
+            sections = self.section_dict[url]
+            section = sections[0]
+            subsection = sections[1]
             print("subpage - scraping " + response.url + ", from section - "+section)
-            subsection = "" #self.section_dict[url][1]
             for grocery in response.css(GROCERY_SELECTOR):
                 self.name = grocery.css(NAME_SELECTOR).extract_first()
                 self.price = grocery.css(PRICE_SELECTOR).extract_first()
