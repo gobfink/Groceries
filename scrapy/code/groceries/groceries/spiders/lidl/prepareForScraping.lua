@@ -10,15 +10,18 @@ end
 
 function main(splash, args)
   assert(splash:go(args.url))
-  assert(splash:wait(2))
+  assert(splash:wait(10))
 
   -- Look for the view more button and click it
   
   splash:set_viewport_full()
-  element = splash:select('[class="view-more"]')
-  if element then
-    local bounds = element:bounds()
-    assert(element:mouse_click{x=bounds.width/2, y=bounds.height/2})
+  --section:not(:has(h1, h2, h3, h4, h5, h6))
+  --and not element:contains('href')
+  viewMore = splash:select('.view-more')
+  viewMoreLink = splash:select('.view-more .clickable.link')
+  if viewMore and not viewMoreLink then
+    local bounds = viewMore:bounds()
+    assert(viewMore:mouse_click{x=bounds.width/2, y=bounds.height/2})
   end
 
   -- Keep scrolling down until no more elements appear (basically old_length == new_length)
@@ -28,12 +31,14 @@ function main(splash, args)
     old_length = new_length
     new_length = scrollDown(splash)
   end
-  
-  return {
-    html = splash:html(),
-    old_length = old_length,
-    new_length = new_length,
-  }
+  return splash:html()
+  --return {
+  --  html = splash:html(),
+  --  png  = splash:png(),
+  --  har  = splash:har(),
+    --old_length = old_length,
+    --new_length = new_length,
+  --}
 end
 
   

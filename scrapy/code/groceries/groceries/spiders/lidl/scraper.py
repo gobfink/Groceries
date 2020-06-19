@@ -18,6 +18,9 @@ class lidlScraper(scrapy.Spider):
     start_urls = ['https://www.lidl.com/products']
     base_url = "https://www.lidl.com"
     expand_and_scroll_lua = read_script("prepareForScraping.lua")
+    section_dict = {}
+    urls = []
+    processedUrls = []
 
     def start_requests(self):
         print ("lua script - " + self.expand_and_scroll_lua)
@@ -32,40 +35,63 @@ class lidlScraper(scrapy.Spider):
         # to the list and keeps going
         # if its not, then it calls the lua to prepare the page 
         # for scraping, and then scrapes it  
+        
         menu = response.css(".category-filter__link")
+        #submenu = response.css("")
+        print ("self.urls - " +str(self.urls))
         print ("processing response.url - " + response.url)
-        print ("menu: ")
-        print (menu.getall())
+
+        #print ("menu: ")
+        #print (menu.getall())
         print ("len(menu): " + str(len(menu)))
-        self.section_dict = {}
+        print ("menu[0] : " + menu.get())
+        print("name - " + menu[0].css('.category-filter__text ::text').get())
+        #inspect_response(response,self)
+
         if (len(menu) > 0  and menu[0].css('[aria-current="page"]')):
+            print ("menu[0] : [aria-current=page] " + menu[0].css('[aria-current="page"]').get())
+            # The top page is active
+            # therefore we need to scrape the links, and continue searching
+            # we then need to loop through each other page.
+            # call parse, and scrape it is not
+            menu_url=menu[0].css('::attr(href)').get()
+
+            menu_name=menu[0].css('.category-filter__text ::text').get()
             for item in menu:
                 heading = item.css('.category-filter__text ::text').get()
                 url = item.css('::attr(href)').get()
                 url = self.base_url+url
                 self.section_dict[url]=heading
+                if self.urls.count(url) == 0:
+                    self.urls.append(url)
 
-            inspect_response(response, self)
 
-            print("top page active - for "+ menu[0].get())
-            urls=menu.css('::attr(href)').getall()
+            #urls=menu.css('::attr(href)').getall()
             # Remove the the first(this) page from list to parse
-            urls.pop()
-            for url_suffix in urls:
-                url = self.base_url + url_suffix
-                print ("pulling from url - " + url)
+            #urls.pop()
+            #self.urls.extend(urls)
+            #print("urls to scrape - " + str(self.urls))
+            #print("local urls - " + str(urls))
+
+
+            while len(self.urls) != 0:
+                url = self.urls.pop()
+                self.processedUrls.append(url)
+                #url = self.base_url + url_suffix
+                #print ("urls - " + str(self.urls))
+                #print ("pulling from url - " + url)
+                #print ("urls lengths - " + str(len(self.urls)))
                 yield SplashRequest(url,
                                 self.parse,
                                 endpoint='execute',
                                 args={'lua_source': self.expand_and_scroll_lua})
 
-            # The top page is active
-            # therefore we need to scrape the links, and continue searching
-            # we then need to loop through each other page.
-            # call isTop, and scrape it is not
+
+        elif (len(menu) == 0):
+            inspect_response(response, self)
+
         else:
             #we are on a subpage, so now we can start scraping
-            print("subpage - scraping " + response.url)
             #    
         
             GROCERY_SELECTOR = '.grid-item'
@@ -75,6 +101,7 @@ class lidlScraper(scrapy.Spider):
             
             url = response.url
             section = self.section_dict[url]
+            print("subpage - scraping " + response.url + ", from section - "+section)
             subsection = "" #self.section_dict[url][1]
             for grocery in response.css(GROCERY_SELECTOR):
                 self.name = grocery.css(NAME_SELECTOR).extract_first()
