@@ -75,8 +75,9 @@ class GroceriesPipeline(object):
             brand = ""
             date = self.date
             store_id = self.store_id
+            url = item.get("url")
             #TODO break this into multiple lines
-            sql = f" INSERT INTO groceryTable (name, section, subsection, price, ounces,reported_price_per_unit, brand, date, store_id) VALUES (\"{name}\",\"{section}\",\"{subsection}\",{price},{ounces},\"{reported_price_per_unit}\",\"{brand}\",\"{date}\",{store_id});"
+            sql = f" INSERT INTO groceryTable (name, section, subsection, price, ounces,reported_price_per_unit, brand, date, store_id, url) VALUES (\"{name}\",\"{section}\",\"{subsection}\",{price},{ounces},\"{reported_price_per_unit}\",\"{brand}\",\"{date}\",{store_id},\" {url} \");"
 
             #print ( "adding sql : "+ sql )
             self.cursor.execute(sql)
