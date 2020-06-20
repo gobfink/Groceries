@@ -35,8 +35,8 @@ def groceries():
     """
     grocery_list = []
 
-    columns_to_display = ['id', 'name', 'section', 'subsection', 'price', 'ounces', 'reported_price_per_unit', 'price_density', 'brand', 'date',
-                          'store']
+    columns_to_display = ['name', 'section', 'subsection', 'price', 'ounces', 'reported_price_per_unit', 'price_density', 'brand', 'date',
+                          'store', 'url']
     grocery_search = GrocerySearchForm(request.form)
 
     # Create a choice list of tuples from the columns_to_display
