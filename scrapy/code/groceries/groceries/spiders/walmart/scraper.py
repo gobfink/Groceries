@@ -141,4 +141,6 @@ class walmartSpider(scrapy.Spider):
                 section,
                 'subsection':
                 subsection,
+                'url':
+                response.url,
             }

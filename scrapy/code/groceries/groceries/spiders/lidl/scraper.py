@@ -122,4 +122,6 @@ class lidlScraper(scrapy.Spider):
                     section,
                     'subsection':
                     subsection,
+                    'url':
+                    response.url
                 }
