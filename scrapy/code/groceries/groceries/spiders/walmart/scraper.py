@@ -21,6 +21,26 @@ def parse_float(input_list):
         f = 0
     return f
 
+def convert_ppu(incoming_ppu):
+    if not incoming_ppu:
+        return ""
+    ppu = incoming_ppu
+    charactersToRemove = ['$', '(',')']
+    for remove in charactersToRemove:
+        ppu = ppu.replace(remove,'')
+    ppuSplit = ppu.split('/')
+    cost = ppuSplit[0]
+    if cost.find('cents') is not -1:
+        cost = cost.replace('cents','')
+        cost = cost.replace('.','')
+        cost = "0."+ cost
+
+    units = ppuSplit[1]
+    if units == "FLUID OUNCE":
+        units = "FLOZ"
+    ppu = cost +" / "+units
+    return ppu
+
 
 class walmartSpider(scrapy.Spider):
     name = "walmart_spider"
@@ -136,7 +156,7 @@ class walmartSpider(scrapy.Spider):
                 'price':
                 grocery.css(SALEPRICE_SELECTOR).extract_first().replace('$',''),
                 'price-per-unit':
-                grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first(),
+                convert_ppu(grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first()),
                 'section':
                 section,
                 'subsection':
