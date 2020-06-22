@@ -12,6 +12,52 @@ def read_script(script_file):
     file.close()
     return script
 
+def convert_cents(price):
+    p = price
+    if price.find('¢') is not -1:
+        p = p.replace('¢','')
+        p = p.replace('.','')
+        p = "0." + p
+    return p
+
+def convert_ppu(incoming_ppu):
+    if not incoming_ppu:
+        return ""
+    ppu = incoming_ppu
+    charactersToRemove = ['$', ' ']
+    for remove in charactersToRemove:
+        ppu = ppu.replace(remove,'')
+    if ppu.find('per') is not -1:
+        ppuSplit = ppu.split('per')
+    elif ppu.find('each') is not -1:
+        # Split off the each, and add it on manually
+        ppuSplit = ppu.split('each')
+        print ("ppu - " + ppu + ", ppuSplit - " + str(ppuSplit))
+        # Add 'each' as the units to be set appropriately
+        ppuSplit[1] = 'ea'
+
+    cost = ppuSplit[0]
+        # if theirs a / seperating multiple values
+    if cost.find('/'):
+        temp_cost = ""
+        costs = cost.split('/')
+        for c in costs:
+            c = convert_cents(c)
+            # If its the first value
+            if temp_cost == "":
+                temp_cost = c
+            else:
+                temp_cost = temp_cost + ", " + c
+            cost = temp_cost
+        else:
+            cost = convert_cents(cost)
+
+    units = ppuSplit[1]
+    units = units.replace('.','')
+    units = units.upper()
+    ppu = cost +" / "+units
+    return ppu
+
 class lidlScraper(scrapy.Spider):
     name = "lidl_spider"
     store_name = "lidl"
@@ -108,7 +154,7 @@ class lidlScraper(scrapy.Spider):
                 self.name = grocery.css(NAME_SELECTOR).extract_first()
                 self.price = grocery.css(PRICE_SELECTOR).extract_first()
                 self.price = self.price.replace('*','').replace('$','')
-                self.ppu = grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first()
+                self.ppu = convert_ppu(grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first())
                 #inspect_response(response, self)
                 #parse the ounces off of the name
                 yield {
