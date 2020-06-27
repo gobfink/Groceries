@@ -12,8 +12,12 @@ def lookup_category(name,section,subsection):
                "meat"   : ["beef","steak","bacon","sausage","chicken","pork","meat"],
                "pasta"  : ["pasta"],
                "oil"    : ["oil"],
-               "juice"  : ["juice"]
+               "juice"  : ["juice"],
+               "alcohol": ["wine","beer","rum","vodka","liquer"]
 	}
+	name=name.lower()
+	section=section.lower()
+	subsection=subsection.lower()
 	ret=""
 	for category,terms in categories.items():
 		if any(term in name for term in terms):
