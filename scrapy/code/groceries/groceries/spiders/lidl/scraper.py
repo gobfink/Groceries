@@ -5,20 +5,7 @@ from scrapy.shell import inspect_response
 from scrapy_splash import SplashRequest
 import re
 
-#TODO move this to a utility file?
-def read_script(script_file):
-    file = open(script_file)
-    script = file.read()
-    file.close()
-    return script
-
-def convert_cents(price):
-    p = price
-    if price.find('¢') is not -1:
-        p = p.replace('¢','')
-        p = p.replace('.','')
-        p = "0." + p
-    return p
+from util import read_script, convert_cents
 
 def convert_ppu(incoming_ppu):
     if not incoming_ppu:

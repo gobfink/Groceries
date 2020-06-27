@@ -10,11 +10,8 @@ import datetime
 import time
 
 from scrapy.exceptions import NotConfigured
-def handle_none(arg):
-    if arg is None:
-        return 0
-    else:
-        return arg
+
+from util import handle_none,lookup_category
 
 class GroceriesPipeline(object):
 
@@ -69,6 +66,8 @@ class GroceriesPipeline(object):
             price = float(handle_none(item.get("price")))
             section = handle_none(item.get("section"))
             subsection = handle_none(item.get("subsection"))
+            category = lookup_category(section,subsection)
+            print (f"process_item - {name} with category - {category}")
             ounces = handle_none(item.get("ounces"))
 
             reported_price_per_unit = handle_none(item.get("price-per-unit"))
