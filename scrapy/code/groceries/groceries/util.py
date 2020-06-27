@@ -1,6 +1,32 @@
 def lookup_category(name,section,subsection):
-	category=""
-	return category
+	categories = {
+	           #"Category name" : "search terms"
+               "baby"   : ["baby","diaper"],
+               "pet"    : ["dog","cat","pet"],
+               "pizza"  : ["pizza"],
+               "dips"   : ["queso","hummus","salsa"],
+               "cheese" : ["cheese"],
+               "baked"  : ["bread","bagel","roll"],
+               "snacks" : ["cookie","chip","pretzel","cand"],
+               "seafood": ["seafood","fish","crab","lobster","clam","scallop","shrimp"],
+               "meat"   : ["beef","steak","bacon","sausage","chicken","pork","meat"],
+               "pasta"  : ["pasta"],
+               "oil"    : ["oil"],
+               "juice"  : ["juice"]
+	}
+	ret=""
+	for category,terms in categories.items():
+		if any(term in name for term in terms):
+			ret=category
+			break
+		if any(term in subsection for term in terms):
+			ret=category
+			break
+		if any(term in section for term in terms):
+			ret=category
+			break
+		
+	return ret
 
 def handle_none(arg):
     if arg is None:
