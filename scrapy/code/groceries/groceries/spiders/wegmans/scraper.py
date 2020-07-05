@@ -6,6 +6,9 @@ from scrapy_splash import SplashRequest
 import re
 from util import read_script, convert_cents
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+
 
 def convert_ppu(incoming_ppu):
     if not incoming_ppu:
@@ -57,18 +60,24 @@ class wegmansScraper(scrapy.Spider):
     processedUrls = []
 
     def __init__(self):
-        self.start_url = "https://shop.wegmans.com/shop/categories"
-        self.driver = webdriver.Firefox()
-        self.driver.implicitly_wait(20)
+        #self.start_url = "https://shop.wegmans.com/shop/categories"
+        #self.driver = webdriver.Firefox()
+        #self.driver.implicitly_wait(20)
 
-    #def start_requests(self):
+    def start_requests(self):
+        yield SeleniumRequest(
+            url=self.start_urls[0],
+            callback=self.parse,
+            wait_time=10,
+            wait_until=EC.visibility_of((By.ID, 'catalog-category-24'))
+        )
         #print ("lua script - " + self.expand_and_scroll_lua)
         #yield SplashRequest(self.start_url, self.parse, endpoint='render.html', args={'wait': 10})
 
     def parse(self, response):
-        self.driver.get(response.url)
-        beef=self.driver.find_element_by_id("catalog-category-24")
-        h=self.driver.page_source
+        #self.driver.get(response.url)
+        #beef=self.driver.find_element_by_id("catalog-category-24")
+        h=response.text
         print("Looking for Beef - " + str(h.find("Beef")))
         # This callback determines if the selected menu is 
         # at the top of the list, if it is then it adds the urls 
