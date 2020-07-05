@@ -28,7 +28,7 @@ services:
      - backend
      entrypoint:
      - "/bin/bash"
-     working_dir: /code/groceries/groceries/spiders/lidl
+     working_dir: /code/groceries/groceries/spiders/wegmans
   lidl:
     volumes:
     - ./scrapy/code:/code
