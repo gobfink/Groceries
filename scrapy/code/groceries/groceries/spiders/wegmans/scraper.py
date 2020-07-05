@@ -59,7 +59,7 @@ class wegmansScraper(scrapy.Spider):
     urls = []
     processedUrls = []
 
-    def __init__(self):
+    #def __init__(self):
         #self.start_url = "https://shop.wegmans.com/shop/categories"
         #self.driver = webdriver.Firefox()
         #self.driver.implicitly_wait(20)
