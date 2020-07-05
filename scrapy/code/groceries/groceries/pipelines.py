@@ -10,11 +10,8 @@ import datetime
 import time
 
 from scrapy.exceptions import NotConfigured
-def handle_none(arg):
-    if arg is None:
-        return 0
-    else:
-        return arg
+
+from util import handle_none,lookup_category
 
 class GroceriesPipeline(object):
 
@@ -69,6 +66,8 @@ class GroceriesPipeline(object):
             price = float(handle_none(item.get("price")))
             section = handle_none(item.get("section"))
             subsection = handle_none(item.get("subsection"))
+            category = lookup_category(name,section,subsection)
+            print (f"process_item - {name} with category - {category}")
             ounces = handle_none(item.get("ounces"))
 
             reported_price_per_unit = handle_none(item.get("price-per-unit"))
@@ -77,7 +76,7 @@ class GroceriesPipeline(object):
             store_id = self.store_id
             url = item.get("url")
             #TODO break this into multiple lines
-            sql = f" INSERT INTO groceryTable (name, section, subsection, price, ounces,reported_price_per_unit, brand, date, store_id, url) VALUES (\"{name}\",\"{section}\",\"{subsection}\",{price},{ounces},\"{reported_price_per_unit}\",\"{brand}\",\"{date}\",{store_id},\" {url} \");"
+            sql = f" INSERT INTO groceryTable (name, category, section, subsection, price, ounces,reported_price_per_unit, brand, date, store_id, url) VALUES (\"{name}\",\"{category}\",\"{section}\",\"{subsection}\",{price},{ounces},\"{reported_price_per_unit}\",\"{brand}\",\"{date}\",{store_id},\" {url} \");"
 
             #print ( "adding sql : "+ sql )
             self.cursor.execute(sql)

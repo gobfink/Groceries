@@ -19,6 +19,7 @@ services:
      hostname: scrapy
      environment: 
         - "DISPLAY"
+        - "PYTHONPATH=/code/groceries/groceries"
      depends_on:
      -  scrapy-middleware
      -  db
@@ -43,6 +44,8 @@ services:
     - backend
     working_dir: /code/groceries/groceries/spiders/lidl
     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+    environment:
+      PYTHONPATH: /code/groceries/groceries/
   walmart:
     volumes:
     - ./scrapy/code:/code
@@ -58,6 +61,8 @@ services:
     - backend
     working_dir: /code/groceries/groceries/spiders/walmart
     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+    environment:
+      PYTHONPATH: /code/groceries/groceries/
   db:
     hostname: db
     image: mysql

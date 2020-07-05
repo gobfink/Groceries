@@ -23,6 +23,7 @@ class db_Grocery(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200))
+    category = db.Column(db.String(60))
     section = db.Column(db.String(60))
     subsection = db.Column(db.String(60))
     price = db.Column(db.Float)
@@ -32,7 +33,7 @@ class db_Grocery(db.Model):
     date = db.Column(db.DateTime, default=False)
     price_density = db.column_property(price/ounces)
     store_id = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
-    url = db.Column(db.String(120))
+    url = db.Column(db.Sbtring(120))
 
 
     #TODO convert ids into values this will require pulling down the other tables, and somehow referencing them

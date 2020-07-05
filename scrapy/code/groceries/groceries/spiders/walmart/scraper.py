@@ -5,21 +5,7 @@ from scrapy.shell import inspect_response
 from scrapy_splash import SplashRequest
 import re
 
-
-#TODO move this to a utility file?
-def read_script(script_file):
-    file = open(script_file)
-    script = file.read()
-    file.close()
-    return script
-
-
-def parse_float(input_list):
-    if input_list:
-        f = float(input_list[0])
-    else:
-        f = 0
-    return f
+from util import read_script, parse_float
 
 def convert_ppu(incoming_ppu):
     if not incoming_ppu:
@@ -40,7 +26,6 @@ def convert_ppu(incoming_ppu):
         units = "FLOZ"
     ppu = cost +" / "+units
     return ppu
-
 
 class walmartSpider(scrapy.Spider):
     name = "walmart_spider"
