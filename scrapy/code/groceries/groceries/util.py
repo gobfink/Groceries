@@ -1,6 +1,8 @@
 def lookup_category(name,section,subsection):
 	categories = {
 	           #"Category name" : "search terms"
+               "fruit"  : ["fruit","orange","banana","apple","peach"],
+               "produce": ["vegetable","fresh","corn","tomato","onion","potato","produce"],
                "baby"   : ["baby","diaper"],
                "pet"    : ["dog","cat","pet"],
                "pizza"  : ["pizza"],
