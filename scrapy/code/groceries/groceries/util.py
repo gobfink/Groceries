@@ -1,34 +1,35 @@
 def lookup_category(name,section,subsection):
 	categories = {
 	           #"Category name" : "search terms"
+               "pet"    : ["dog","cat","pet"],
+               "baby"   : ["baby","diaper"],
+               "pizza"  : ["pizza"],
+               "dips"   : ["dip","queso","hummus","salsa"],
+               "baked"  : ["bakery","bread","bagel","roll","muffin","donut"],
+               "snacks" : ["snack","cookie","chip","pretzel","cand"],
+               "seafood": ["seafood","fish","crab","lobster","clam","scallop","shrimp"],
+               "meat"   : ["meat","beef","steak","bacon","sausage","chicken","pork","meat"],
+               "pasta"  : ["pasta"],
+               "dessert": ["dessert","pie","ice cream","frozen yogurt", "cake"],
+               "juice"  : ["juice"],
+               "oil"    : ["oil"],
+               "alcohol": ["alcohol","wine","beer","rum","vodka","liquer"],
+               "cheese" : ["cheese"],
                "fruit"  : ["fruit","orange","banana","apple","peach"],
                "produce": ["vegetable","fresh","corn","tomato","onion","potato","produce"],
-               "baby"   : ["baby","diaper"],
-               "pet"    : ["dog","cat","pet"],
-               "pizza"  : ["pizza"],
-               "dips"   : ["queso","hummus","salsa"],
-               "cheese" : ["cheese"],
-               "baked"  : ["bread","bagel","roll"],
-               "snacks" : ["cookie","chip","pretzel","cand"],
-               "seafood": ["seafood","fish","crab","lobster","clam","scallop","shrimp"],
-               "meat"   : ["beef","steak","bacon","sausage","chicken","pork","meat"],
-               "pasta"  : ["pasta"],
-               "oil"    : ["oil"],
-               "juice"  : ["juice"],
-               "alcohol": ["wine","beer","rum","vodka","liquer"]
 	}
 	name=name.lower()
 	section=section.lower()
 	subsection=subsection.lower()
 	ret=""
 	for category,terms in categories.items():
-		if any(term in name for term in terms):
-			ret=category
-			break
 		if any(term in subsection for term in terms):
 			ret=category
 			break
-		if any(term in section for term in terms):
+		elif any(term in section for term in terms):
+			ret=category
+			break
+		elif any(term in name for term in terms):
 			ret=category
 			break
 		
