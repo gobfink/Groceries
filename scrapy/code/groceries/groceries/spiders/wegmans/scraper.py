@@ -95,11 +95,12 @@ class wegmansScraper(scrapy.Spider):
             section=self.section_dict[url][0]
             subsection=self.section_dict[url][1]
             print(f"name - {name}, price - {price}, quantity - {quantity}, ounces - {ounces}, ppu - {ppu}, url - {url}, section - {section}, subsection - {subsection} ")
+            inspect_response(response,self)
             yield {
                 "name": name,
                 "price": price,
                 "ounces": ounces,
-                "ppu": ppu,
+                "price-per-unit": ppu,
                 "url": url,
                 "section": section,
                 "subsection": subsection

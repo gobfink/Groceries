@@ -53,8 +53,8 @@ services:
      - backend
      entrypoint:
      - "/bin/bash"
-    entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
-    working_dir: /code/groceries/groceries/spiders/wegmans
+     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+     working_dir: /code/groceries/groceries/spiders/wegmans
   lidl:
     volumes:
     - ./scrapy/code:/code
