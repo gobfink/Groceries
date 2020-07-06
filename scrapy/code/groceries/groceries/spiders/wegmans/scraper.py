@@ -53,17 +53,10 @@ class wegmansScraper(scrapy.Spider):
     name = "wegmans_spider"
     store_name = "wegmans"  
     start_urls = ['https://shop.wegmans.com/shop/categories']
-    #Need to double check this
-    base_url = "https://shop.wegmans.com/shop/categories"
-    #expand_and_scroll_lua = read_script("prepareForScraping.lua")
+    base_url = "https://shop.wegmans.com"
     section_dict = {}
     urls = []
     processedUrls = []
-
-    #def __init__(self):
-        #self.start_url = "https://shop.wegmans.com/shop/categories"
-        #self.driver = webdriver.Firefox()
-        #self.driver.implicitly_wait(20)
 
     def start_requests(self):
         print(f"Starting requests with - {self.start_urls[0]}")
@@ -76,10 +69,19 @@ class wegmansScraper(scrapy.Spider):
         #print ("lua script - " + self.expand_and_scroll_lua)
         #yield SplashRequest(self.start_url, self.parse, endpoint='render.html', args={'wait': 10})
     def parse_urls(self, response):
-        h=response.text
-        print("Looking for Beef - " + str(h.find("Beef")))
+        self.section_group = response.css(".subcategory.category")
+        section_group = response.css(".subcategory.category")
+        for section in section_group:
+            section_name = section.css(".css-1pita2n ::text").get()
+            url_nodes = section.css("ul.children a")
+            for url_node in url_nodes:
+                subsection_name = url_node.css("::text").get() 
+                url = self.base_url + url_node.css("::attr(href)").get()
+                self.section_dict[url] = (section_name, subsection_name)                
+#                print(f"section - {section_name}, subsection - {subsection_name}, url - {url}")                
+
+        print ("section_dict - " + str(self.section_dict))
         inspect_response(response,self)
-        return
 
     def parse(self, response):
         #self.driver.get(response.url)
