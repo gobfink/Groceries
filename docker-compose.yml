@@ -37,6 +37,24 @@ services:
      entrypoint:
      - "/bin/bash"
      working_dir: /code/groceries/groceries/spiders/wegmans
+  wegmans:
+     volumes:
+     - ./scrapy/code:/code
+     build: 
+       context: scrapy/
+       dockerfile: Dockerfile.runtime
+     hostname: wegmans-scrapy
+     environment: 
+        - "PYTHONPATH=/code/groceries/groceries"
+     depends_on:
+     -  db
+     -  adminer
+     networks:
+     - backend
+     entrypoint:
+     - "/bin/bash"
+    entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+    working_dir: /code/groceries/groceries/spiders/wegmans
   lidl:
     volumes:
     - ./scrapy/code:/code

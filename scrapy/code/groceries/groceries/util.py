@@ -34,6 +34,23 @@ def lookup_category(name,section,subsection):
 		
 	return ret
 
+def convert_units(units):
+    if units == "ounce":
+        units = "OZ"
+    elif units == "lb.":
+        units = "LB"
+    elif units == "each":
+        units = "EA"
+    elif units == "ct.":
+        units = "EA"
+    elif units == "fl. oz.":
+        units = "FLOZ"
+    elif units == "sq. ft.":
+        units = "SQFT"
+    elif units == "yd. ":
+        units = "YD"
+    return units
+
 def handle_none(arg):
     if arg is None:
         return 0
@@ -59,6 +76,11 @@ def read_script(script_file):
     script = file.read()
     file.close()
     return script
+
+def convert_dollars(price):
+    p = price
+    p = p.replace('$','')
+    return p
 
 def convert_cents(price):
     p = price
