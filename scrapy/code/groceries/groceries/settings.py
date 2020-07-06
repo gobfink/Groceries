@@ -66,14 +66,15 @@ DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
 HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 
 
-# TODO lookinto setting up a remote selenium driver container
+# TODO lookinto setting up a remote selenium driver container -- for some reason i can't really get this to work, the documentation is kinda confusing, and it won't run withouth a selenium_driver_executable_path
 #In order to use a remote Selenium driver, specify SELENIUM_COMMAND_EXECUTOR instead of SELENIUM_DRIVER_EXECUTABLE_PATH: python SELENIUM_COMMAND_EXECUTOR = 'http://selenium-middleware:4444/wd/hub' 
 #https://github.com/clemfromspace/scrapy-selenium
-SELENIUM_DRIVER_NAME = 'firefox'
-#SELENIUM_DRIVER_EXECUTABLE_PATH = which('geckodriver')
-SELENIUM_COMMAND_EXECUTOR = 'http://selenium-middleware:4444/wd/hub'
-#SELENIUM_DRIVER_ARGUMENTS=['-headless']  # '--headless' if using chrome instead of firefox
+#SELENIUM_COMMAND_EXECUTOR = 'http://selenium-middleware:4444/wd/hub'
+#SELENIUM_DRIVER_EXECUTABLE_PATH: python 
 
+SELENIUM_DRIVER_NAME = 'firefox'
+SELENIUM_DRIVER_EXECUTABLE_PATH = which('geckodriver')
+SELENIUM_DRIVER_ARGUMENTS=['-headless']  
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
