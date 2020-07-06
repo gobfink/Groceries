@@ -64,17 +64,18 @@ class wegmansScraper(scrapy.Spider):
             for url_node in url_nodes:
                 subsection_name = url_node.css("::text").get() 
                 url = self.base_url + url_node.css("::attr(href)").get()
-                self.section_dict[url] = (section_name, subsection_name)                
+                self.section_dict[url] = (section_name, subsection_name)
+                self.urls.append(url)                
 
-        print ("section_dict - " + str(self.section_dict))
-        for url in self.section_dict.keys():
-            yield SeleniumRequest(
-                url=url,
-                callback=self.parse,
-                wait_time=20,
-                wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
-            )
-            #inspect_response(response,self)
+        while len(self.urls) != 0:
+                url = self.urls.pop()
+                self.processedUrls.append(url)
+                yield SeleniumRequest(
+                    url=url,
+                    callback=self.parse,
+                    wait_time=20,
+                    wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
+                )
 
     def parse(self, response):
 
@@ -95,7 +96,7 @@ class wegmansScraper(scrapy.Spider):
             section=self.section_dict[url][0]
             subsection=self.section_dict[url][1]
             print(f"name - {name}, price - {price}, quantity - {quantity}, ounces - {ounces}, ppu - {ppu}, url - {url}, section - {section}, subsection - {subsection} ")
-            inspect_response(response,self)
+            #inspect_response(response,self)
             yield {
                 "name": name,
                 "price": price,
