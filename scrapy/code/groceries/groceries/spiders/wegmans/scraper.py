@@ -92,13 +92,13 @@ class wegmansScraper(scrapy.Spider):
             #if yes, check url if it has a page part on it
             if i == -1:
             #if no, add ?page=2 to it
-                self.next_url = url + page_string+"2"
+                next_url = url + page_string+"2"
             else:
             #if yes, extract page and add 1 
                 page_number = i+page_string_len
                 current_page = int(url[page_number:])
                 next_page = current_page + 1
-                self.next_url = url[:page_number] + str(next_page)
+                next_url = url[:page_number] + str(next_page)
             
             self.urls.append(next_url)
             #inspect_response(response,self)
