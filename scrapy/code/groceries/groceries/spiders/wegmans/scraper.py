@@ -9,7 +9,7 @@ from scrapy_selenium import SeleniumRequest
 
 
 def convert_ppu(incoming_ppu):
-    if not incoming_ppu:
+    if incoming_ppu is None:
         return ""
     ppu = incoming_ppu
     charactersToRemove = ['$', '(',')']
@@ -26,6 +26,8 @@ def convert_ppu(incoming_ppu):
     return ppu
 
 def convert_to_ounces(weight):
+    if weight is None:
+        return weight        
     ret = 0
     weight.replace(' ','')
     if (weight.find("ounce") != -1):
@@ -51,7 +53,7 @@ class wegmansScraper(scrapy.Spider):
             yield SeleniumRequest(
                 url=url,
                 callback=self.parse_urls,
-                wait_time=20,
+                wait_time=5,
                 wait_until=EC.element_to_be_clickable((By.ID, 'nav-main-shop-category-1'))
             )
 
@@ -73,13 +75,35 @@ class wegmansScraper(scrapy.Spider):
                 yield SeleniumRequest(
                     url=url,
                     callback=self.parse,
-                    wait_time=20,
+                    wait_time=5,
                     wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
                 )
 
     def parse(self, response):
 
+        url=response.url
         items = response.css('.cell-content-wrapper')
+        #check if it has a next button,
+        next_page=response.css('[aria-label="Next"]').get()
+        if next_page is not None:
+            page_string="?page="
+            page_str_len=len(page_string)
+            i = url.find(page_string)
+            #if yes, check url if it has a page part on it
+            if i == -1:
+            #if no, add ?page=2 to it
+                self.next_url = url + page_string+"2"
+            else:
+            #if yes, extract page and add 1 
+                page_number = i+page_string_len
+                current_page = int(url[page_number:])
+                next_page = current_page + 1
+                self.next_url = url[:page_number] + str(next_page)
+            
+            self.urls.append(next_url)
+            #inspect_response(response,self)
+            #then add to self.urls
+        
         for item in items:
             name=item.css('.cell-title-text ::text').get()
             price=item.css('[data-test="amount"] .css-19m8h51 ::text').get()
@@ -92,9 +116,9 @@ class wegmansScraper(scrapy.Spider):
 
             ppu=item.css('[data-test="per-unit-price"] ::text').get()
             ppu=convert_ppu(ppu)
-            url=response.url
             section=self.section_dict[url][0]
             subsection=self.section_dict[url][1]
+
             print(f"name - {name}, price - {price}, quantity - {quantity}, ounces - {ounces}, ppu - {ppu}, url - {url}, section - {section}, subsection - {subsection} ")
             #inspect_response(response,self)
             yield {
