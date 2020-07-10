@@ -42,7 +42,7 @@ services:
      - ./scrapy/code:/code
      build: 
        context: scrapy/
-       dockerfile: Dockerfile.runtime
+       dockerfile: Dockerfile.selenium.runtime
      hostname: wegmans-scrapy
      environment: 
         - "PYTHONPATH=/code/groceries/groceries"

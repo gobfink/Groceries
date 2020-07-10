@@ -41,6 +41,7 @@ class GroceriesPipeline(object):
                                               passwd=self.passwd,
                                               host=self.host,
                                               charset='utf8', use_unicode=True)
+                spider.conn = self.conn
                 #Look for the store in the store_table
                 store_query=f"SELECT id FROM storeTable where name='{self.store_name}'"
                 self.cursor = self.conn.cursor()
