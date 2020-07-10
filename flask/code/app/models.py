@@ -42,4 +42,25 @@ class db_Grocery(db.Model):
     def __repr__(self):
         return '<Grocery: %s, Def: %s>'%(format(self.name),format(self.price))
 
+class db_Urls(db.Model):
+    """
+    Create Groceries table
+    """
+
+
+    __tablename__ = 'urlTable'
+
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String(100))
+    category = db.Column(db.String(50))
+    section = db.Column(db.String(50))
+    subsection = db.Column(db.String(50))
+    scraped = db.Column(db.tinyint(1))
+    store_id = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
+    #TODO makesure timestamp is setup to change on update
+    timestamp = db.Column(db.DateTime, default=False)
+
+
+    def __repr__(self):
+        return '<URL: %s, section: %s, subsection %s>'%(format(self.url),format(self.section), format(self.subsection))
 
