@@ -2,13 +2,13 @@
 
 import scrapy
 from scrapy.shell import inspect_response
-from util import convert_dollars, convert_units
+from util import convert_dollars, convert_units, lookup_category
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from scrapy_selenium import SeleniumRequest
 import MySQLdb
 import datetime
-
+import time
 
 
 def convert_ppu(incoming_ppu):
@@ -56,56 +56,59 @@ class wegmansScraper(scrapy.Spider):
     conn = ""
     store_id=-1
 
-    def get_next_url(self):
-        sql=f"SELECT url from urlTable WHERE scraped=0 ORDER BY updated LIMIT 1"
+    def get_url_metadata(self,url):
+        sql=f"SELECT category, section, subsection FROM urlTable WHERE url=\"{url}\""
+        print(f'get_url_metadata - {sql}')
+        cursor=self.conn.cursor()
+        cursor.execute(sql)
+        metadata=cursor.fetchone()
+        return (metadata)
+
+    def get_next_url(self,iteration):
+        sql=f"SELECT url from urlTable WHERE scraped=0 ORDER BY updated DESC LIMIT {iteration}"
         self.cursor.execute(sql)
         url=self.cursor.fetchone()
-        return url
+        if url is None:
+            return None
+        else:
+            url=url[0]
+            return url
 
     def store_url(self,url,category,section,subsection):
-        #TODO don't store duplicates
-        # If entry in urls
-        #increment hits
         time=datetime.datetime.now()
-        store_url_sql = f"INSERT INTO urlTable (url, store, scraped, Updated, category, section, subsection) VALUES (\"{url}\",{self.store_id},0,\"{time}\",\"{category}\",\"{section}\",\"{subsection}\");"
         store_query=f"SELECT Hits FROM urlTable where url='{url}'"
         cursor = self.conn.cursor()
         cursor.execute(store_query)
         hits=cursor.fetchone()
-        print (f"store_url_sql - {store_url_sql}")
         if hits is None:
+            store_url_sql = f"INSERT INTO urlTable (url, store, scraped, Updated, category, section, subsection, hits) VALUES (\"{url}\",{self.store_id},0,\"{time}\",\"{category}\",\"{section}\",\"{subsection}\",1);"
+            #print (f"store_url_sql - {store_url_sql}")
             self.cursor.execute(store_url_sql)
             self.conn.commit()
         else:
             hits=hits[0]+1
             url_query=f"SELECT id FROM urlTable where url='{url}'"
-            print(f"url_query - {url_query}")
+            #print(f"url_query - {url_query}")
             self.cursor.execute(url_query)
             fetched_id=self.cursor.fetchone()[0]
             update=f" UPDATE urlTable SET hits={hits} WHERE id={fetched_id}"
-            print(f"url_query - {update}")
+            #print(f"update - {update}")
             self.cursor.execute(update)
             self.conn.commit()            
 
     def finish_url(self,url):
-        url_query=f"SELECT id FROM urlTable where url='{url}'"
-        self.cursor.execute(url_query)
-        fetched_id=self.cursor.fetchone()
-
-        url_update=f" UPDATE urlTable SET scraped=1 WHERE id={fetched_id}"
+        url_update=f" UPDATE urlTable SET scraped=1 WHERE url=\"{url}\""
+        #print(f"finish_url - {url_update}")
         self.cursor.execute(url_update)
         self.conn.commit()
-
-        return fetched_id
+        return url
 
     def start_requests(self):
         store_query=f"SELECT id FROM storeTable where name='{self.store_name}'"
         self.cursor = self.conn.cursor()
         self.cursor.execute(store_query)
         self.store_id=self.cursor.fetchone()[0]
-        #self.store_id=clean_string(self.store_id,['(',')',','])
 
-        #print (f"************** Fetched_id {fetched_id}")
         for url in self.start_urls:
             self.store_url(url,"","","")
             print(f"Starting requests with - {url}")
@@ -117,8 +120,6 @@ class wegmansScraper(scrapy.Spider):
             )
 
     def parse_urls(self, response):
-        inspect_response(response,self)
-
         self.section_group = response.css(".subcategory.category")
         section_group = response.css(".subcategory.category")
         for section in section_group:
@@ -127,23 +128,42 @@ class wegmansScraper(scrapy.Spider):
             for url_node in url_nodes:
                 subsection_name = url_node.css("::text").get() 
                 url = self.base_url + url_node.css("::attr(href)").get()
-                self.section_dict[url] = (section_name, subsection_name)
-                self.urls.append(url)                
 
-        while len(self.urls) != 0:
-                url = self.urls.pop()
-                self.processedUrls.append(url)
-                yield SeleniumRequest(
-                    url=url,
-                    callback=self.parse,
-                    wait_time=5,
-                    wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
+                self.store_url(url, lookup_category("",section_name,subsection_name) ,section_name, subsection_name)
+
+
+
+        self.finish_url(response.url)
+
+        next_url=self.get_next_url(1)
+        i = 1
+        while next_url is not None:
+            if i is 100:
+                i = 1
+            else:
+                i += 1
+            print(f"next_url - {next_url}")
+            yield SeleniumRequest(
+                url=next_url,
+                callback=self.parse,
+                wait_time=5,
+                wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
                 )
+            time.sleep(5)
+            next_url=self.get_next_url(i)
+
+
+
 
     def parse(self, response):
 
+
         url=response.url
+        self.finish_url(url)
         items = response.css('.cell-content-wrapper')
+        metadata=self.get_url_metadata(url)
+        section=metadata[1]
+        subsection=metadata[2]
         #check if it has a next button,
         next_page=response.css('[aria-label="Next"]').get()
         if next_page is not None:
@@ -160,15 +180,10 @@ class wegmansScraper(scrapy.Spider):
                 current_page = int(url[page_number:])
                 next_page = current_page + 1
                 next_url = url[:page_number] + str(next_page)
-            print (f"Handling url - {next_url}")
-            yield SeleniumRequest(
-                    url=next_url,
-                    callback=self.parse,
-                    wait_time=5,
-                    wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
-                )
-            #inspect_response(response,self)
             #then add to self.urls
+            self.store_url(url, lookup_category("",section,subsection) ,section, subsection)
+
+
         
         for item in items:
             name=item.css('.cell-title-text ::text').get()
@@ -182,8 +197,6 @@ class wegmansScraper(scrapy.Spider):
 
             ppu=item.css('[data-test="per-unit-price"] ::text').get()
             ppu=convert_ppu(ppu)
-            section=self.section_dict[url][0]
-            subsection=self.section_dict[url][1]
 
             print(f"name - {name}, price - {price}, quantity - {quantity}, ounces - {ounces}, ppu - {ppu}, url - {url}, section - {section}, subsection - {subsection} ")
             #inspect_response(response,self)
