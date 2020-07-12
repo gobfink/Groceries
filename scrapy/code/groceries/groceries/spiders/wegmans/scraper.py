@@ -102,6 +102,17 @@ class wegmansScraper(scrapy.Spider):
         self.cursor.execute(url_update)
         self.conn.commit()
         return url
+    def create_parse_request(self,url):
+        request = SeleniumRequest(
+                    url=url,
+                    callback=self.parse, 
+                    wait_time=50, 
+                    wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '[add-to-cart]'))
+
+                    )
+                    #wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
+
+        return request
 
     def start_requests(self):
         store_query=f"SELECT id FROM storeTable where name='{self.store_name}'"
@@ -136,12 +147,16 @@ class wegmansScraper(scrapy.Spider):
         self.finish_url(response.url)
 
         next_url=self.get_next_url(1)
-        yield SeleniumRequest(
-            url=next_url,
-            callback=self.parse,
-            wait_time=5,
-            wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
-            )
+        request = self.create_parse_request(next_url)
+        #FIXME these try except blocks don't actually handle timeout exceptions from navigating to the wrong url
+        try:
+            yield request
+        except:
+            print (f"Parse -  Errored out processing request for - {next_url} ")
+            next_url=self.get_next_url(2)
+            print (f"Parse - Now handling {next_url}")
+            request = self.create_parse_request(next_url)
+            yield request
 
         #i = 1
         #while next_url is not None:
@@ -172,7 +187,7 @@ class wegmansScraper(scrapy.Spider):
         section=metadata[1]
         subsection=metadata[2]
         #check if it has a next button,
-        next_page=response.css('[aria-label="Next"]').get()
+        next_page=response.css('.pagination-next:not(.disabled)').get()
         if next_page is not None:
             #inspect_response(response,self)
             page_string="?page="
@@ -217,13 +232,23 @@ class wegmansScraper(scrapy.Spider):
                 "section": section,
                 "subsection": subsection
             }
-        next_url=self.get_next_url(1)
+        
+        next_url = self.get_next_url(1)
+        request  = self.create_parse_request(next_url)
         if next_url is not None:
-            yield SeleniumRequest(
-                url=next_url,
-                callback=self.parse,
-                wait_time=20,
-                wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
-                )
+            try:
+                yield request
+            except:
+                print (f"Parse -  Errored out processing request for - {next_url} ")
+                next_url=self.get_next_url(2)
+                print (f"Parse - Now handling {next_url}")
+                request  = self.create_parse_request(next_url)
+                
+                yield SeleniumRequest(
+                    url=next_url,
+                    callback=self.parse,
+                    wait_time=50,
+                    wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
+                    )
 
         #inspect_response(response,self)
