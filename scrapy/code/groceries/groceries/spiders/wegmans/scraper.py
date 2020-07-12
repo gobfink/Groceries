@@ -222,7 +222,7 @@ class wegmansScraper(scrapy.Spider):
             yield SeleniumRequest(
                 url=next_url,
                 callback=self.parse,
-                wait_time=10,
+                wait_time=20,
                 wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
                 )
 
