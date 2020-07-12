@@ -136,21 +136,28 @@ class wegmansScraper(scrapy.Spider):
         self.finish_url(response.url)
 
         next_url=self.get_next_url(1)
-        i = 1
-        while next_url is not None:
-            if i is 100:
-                i = 1
-            else:
-                i += 1
-            print(f"next_url - {next_url}")
-            yield SeleniumRequest(
-                url=next_url,
-                callback=self.parse,
-                wait_time=5,
-                wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
-                )
-            time.sleep(5)
-            next_url=self.get_next_url(i)
+        yield SeleniumRequest(
+            url=next_url,
+            callback=self.parse,
+            wait_time=5,
+            wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
+            )
+
+        #i = 1
+        #while next_url is not None:
+        #    if i is 100:
+        #        i = 1
+        #    else:
+        #        i += 1
+        #    print(f"next_url - {next_url}")
+        #    yield SeleniumRequest(
+        #        url=next_url,
+        #        callback=self.parse,
+        #        wait_time=5,
+        #        wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
+        #        )
+        #    time.sleep(5)
+        #    next_url=self.get_next_url(i)
 
 
 
@@ -167,6 +174,7 @@ class wegmansScraper(scrapy.Spider):
         #check if it has a next button,
         next_page=response.css('[aria-label="Next"]').get()
         if next_page is not None:
+            #inspect_response(response,self)
             page_string="?page="
             page_str_len=len(page_string)
             i = url.find(page_string)
@@ -176,12 +184,12 @@ class wegmansScraper(scrapy.Spider):
                 next_url = url + page_string+"2"
             else:
             #if yes, extract page and add 1 
-                page_number = i+page_string_len
+                page_number = i+page_str_len
                 current_page = int(url[page_number:])
                 next_page = current_page + 1
                 next_url = url[:page_number] + str(next_page)
             #then add to self.urls
-            self.store_url(url, lookup_category("",section,subsection) ,section, subsection)
+            self.store_url(next_url, lookup_category("",section,subsection) ,section, subsection)
 
 
         
@@ -209,5 +217,13 @@ class wegmansScraper(scrapy.Spider):
                 "section": section,
                 "subsection": subsection
             }
+        next_url=self.get_next_url(1)
+        if next_url is not None:
+            yield SeleniumRequest(
+                url=next_url,
+                callback=self.parse,
+                wait_time=10,
+                wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
+                )
 
         #inspect_response(response,self)

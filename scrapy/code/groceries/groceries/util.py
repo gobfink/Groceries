@@ -43,7 +43,7 @@ def convert_units(units):
     elif units == "each":
         units = "EA"
     elif units == "ct.":
-        units = "EA"
+        units = "CT"
     elif units == "fl. oz.":
         units = "FLOZ"
     elif units == "sq. ft.":
@@ -79,6 +79,8 @@ def read_script(script_file):
     return script
 
 def convert_dollars(price):
+    if price is None:
+      return 0
     p = price
     p = p.replace('$','')
     return p
