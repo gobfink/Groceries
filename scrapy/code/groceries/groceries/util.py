@@ -52,6 +52,53 @@ def convert_units(units):
         units = "YD"
     return units
 
+def convert_ppu(incoming_ppu):
+    if incoming_ppu is None:
+        return ""
+    ppu = incoming_ppu
+    charactersToRemove = ['$', '(',')']
+    for remove in charactersToRemove:
+        ppu = ppu.replace(remove,'')
+    ppuSplit = ppu.split('/')
+    cost = ppuSplit[0]
+
+    units = ppuSplit[1]
+
+    units = convert_units(units)
+    
+    ppu = cost +" / "+units
+    return ppu
+
+def convert_to_ounces(weight):
+    if weight is None:
+        return weight        
+    ret = 0
+    weight.replace(' ','')
+    if (weight.find("ounce") != -1):
+        ret = weight.replace('ounce','')
+    elif (weight.find("lb.") != -1):
+        ret = weight.replace('lb.','')
+        ret = float(ret) * 16
+    else:
+        print ("convert_to_ounces - unsupported weight of: " + weight)
+
+    return ret
+
+def convert_dollars(price):
+    if price is None:
+      return 0
+    p = price
+    p = p.replace('$','')
+    return p
+
+def convert_cents(price):
+    p = price
+    if price.find('¢') is not -1:
+        p = p.replace('¢','')
+        p = p.replace('.','')
+        p = "0." + p
+    return p
+
 def handle_none(arg):
     if arg is None:
         return 0
@@ -78,18 +125,7 @@ def read_script(script_file):
     file.close()
     return script
 
-def convert_dollars(price):
-    if price is None:
-      return 0
-    p = price
-    p = p.replace('$','')
-    return p
-
-def convert_cents(price):
-    p = price
-    if price.find('¢') is not -1:
-        p = p.replace('¢','')
-        p = p.replace('.','')
-        p = "0." + p
-    return p
-
+def clean_string(string,list_to_clean):
+    for item in list_to_clean:
+        string = string.replace(item,"")
+    return string

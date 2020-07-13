@@ -9,13 +9,13 @@ services:
      - "8051:8051"
      networks:
      - backend
-  selenium-middleware:
-     hostname: selenium-middleware
-     image: selenium/standalone-firefox
-     ports:
-     - "4444:4444"
-     networks:
-     - backend
+  #selenium-middleware:
+  #   hostname: selenium-middleware
+  #   image: selenium/standalone-firefox
+  #   ports:
+  #   - "4444:4444"
+  #   networks:
+  #   - backend
   scrapy:
      volumes:
      - ./scrapy/code:/code
@@ -29,7 +29,6 @@ services:
         - "PYTHONPATH=/code/groceries/groceries"
      depends_on:
      -  splash-middleware
-     -  selenium-middleware
      -  db
      -  adminer
      networks:
@@ -51,8 +50,6 @@ services:
      -  adminer
      networks:
      - backend
-     entrypoint:
-     - "/bin/bash"
      entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
      working_dir: /code/groceries/groceries/spiders/wegmans
   lidl:

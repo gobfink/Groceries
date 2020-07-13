@@ -52,13 +52,14 @@ class db_Urls(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String(100))
+    Updated = db.Column(db.DateTime, default=False)
+    hits = db.Column(db.Integer)
+    store = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
+    scraped = db.Column(db.tinyint(1))
     category = db.Column(db.String(50))
     section = db.Column(db.String(50))
     subsection = db.Column(db.String(50))
-    scraped = db.Column(db.tinyint(1))
-    store_id = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
     #TODO makesure timestamp is setup to change on update
-    timestamp = db.Column(db.DateTime, default=False)
 
 
     def __repr__(self):

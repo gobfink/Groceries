@@ -2,48 +2,12 @@
 
 import scrapy
 from scrapy.shell import inspect_response
-from util import convert_dollars, convert_units, lookup_category
+from util import convert_dollars, convert_units, lookup_category, clean_string, convert_to_ounces, convert_ppu
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from scrapy_selenium import SeleniumRequest
 import MySQLdb
 import datetime
-import time
-
-
-def convert_ppu(incoming_ppu):
-    if incoming_ppu is None:
-        return ""
-    ppu = incoming_ppu
-    charactersToRemove = ['$', '(',')']
-    for remove in charactersToRemove:
-        ppu = ppu.replace(remove,'')
-    ppuSplit = ppu.split('/')
-    cost = ppuSplit[0]
-
-    units = ppuSplit[1]
-
-    units = convert_units(units)
-    
-    ppu = cost +" / "+units
-    return ppu
-
-def convert_to_ounces(weight):
-    if weight is None:
-        return weight        
-    ret = 0
-    weight.replace(' ','')
-    if (weight.find("ounce") != -1):
-        ret = weight.replace('ounce','')
-    else:
-        print ("convert_to_ounces - unsupported weight of: " + weight)
-
-    return ret
-
-def clean_string(string,list_to_clean):
-    for item in list_to_clean:
-        string = string.replace(item,"")
-    return string
 
 class wegmansScraper(scrapy.Spider):
     name = "wegmans_spider"
@@ -98,7 +62,6 @@ class wegmansScraper(scrapy.Spider):
 
     def finish_url(self,url):
         url_update=f" UPDATE urlTable SET scraped=1 WHERE url=\"{url}\""
-        #print(f"finish_url - {url_update}")
         self.cursor.execute(url_update)
         self.conn.commit()
         return url
@@ -110,7 +73,6 @@ class wegmansScraper(scrapy.Spider):
                     wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '[add-to-cart]'))
 
                     )
-                    #wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
 
         return request
 
@@ -158,25 +120,6 @@ class wegmansScraper(scrapy.Spider):
             request = self.create_parse_request(next_url)
             yield request
 
-        #i = 1
-        #while next_url is not None:
-        #    if i is 100:
-        #        i = 1
-        #    else:
-        #        i += 1
-        #    print(f"next_url - {next_url}")
-        #    yield SeleniumRequest(
-        #        url=next_url,
-        #        callback=self.parse,
-        #        wait_time=5,
-        #        wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
-        #        )
-        #    time.sleep(5)
-        #    next_url=self.get_next_url(i)
-
-
-
-
     def parse(self, response):
 
 
@@ -210,6 +153,7 @@ class wegmansScraper(scrapy.Spider):
         
         for item in items:
             name=item.css('.cell-title-text ::text').get()
+            name=clean_string(name,['\"'])
             price=item.css('[data-test="amount"] .css-19m8h51 ::text').get()
             price=convert_dollars(price)
             
@@ -251,4 +195,3 @@ class wegmansScraper(scrapy.Spider):
                     wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '.button.full.cart.add'))
                     )
 
-        #inspect_response(response,self)
