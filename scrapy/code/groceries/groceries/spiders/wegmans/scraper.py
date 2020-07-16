@@ -8,12 +8,16 @@ from selenium.webdriver.support import expected_conditions as EC
 from scrapy_selenium import SeleniumRequest
 import MySQLdb
 import datetime
+import time
 
 class wegmansScraper(scrapy.Spider):
     name = "wegmans_spider"
     store_name = "wegmans"  
-    start_urls = ['https://shop.wegmans.com/shop/categories','https://shop.wegmans.com/shop/categories/470']
+    #start_urls = ['https://shop.wegmans.com/shop/categories','https://shop.wegmans.com/shop/categories/470']
+    start_urls = ['https://shop.wegmans.com/shop/categories']
     base_url = "https://shop.wegmans.com"
+    location = "LAKE MANASSAS"
+    queried_location=""
     section_dict = {}
     urls = []
     processedUrls = []
@@ -37,6 +41,8 @@ class wegmansScraper(scrapy.Spider):
         else:
             url=url[0]
             return url
+
+
 
     def store_url(self,url,category,section,subsection):
         time=datetime.datetime.now()
@@ -89,10 +95,51 @@ class wegmansScraper(scrapy.Spider):
                 url=url,
                 callback=self.parse_urls,
                 wait_time=5,
-                wait_until=EC.element_to_be_clickable((By.ID, 'nav-main-shop-category-1'))
+                wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-test="store-button"]'))
             )
+                #wait_until=EC.element_to_be_clickable((By.ID, 'nav-main-shop-category-1'))
+    def update_location_db(self,location,store_id):
+        store_update=f"UPDATE storeTable SET location=\"{location}\" WHERE id=\"{store_id}\""
+        self.cursor.execute(store_update)
+        self.conn.commit()
+
+    def change_store_location(self, response):
+        time.sleep(10)
+        self.driver=response.request.meta['driver']
+        self.close=self.driver.find_element_by_css_selector('.close')
+        self.close.click()
+        store_url=self.driver.find_element_by_css_selector('[data-test="store-button"]')
+        store_url.click()
+
+        time.sleep(10)
+        stores=self.driver.find_elements_by_css_selector('.store-row')
+        # Go through each of the stores, until one matches the text, then click on it
+        for store in stores:
+            name=store.find_element_by_css_selector('.name')
+            #print (f"change_store_location - {name.text}")
+            if name.text == self.location:
+                button = store.find_element_by_css_selector('.button.small.hollow')
+                self.button=button
+                #print (f"clicking element - {button.text}")
+
+                #inspect_response(response,self)
+                button.click()
+                time.sleep(5)
+                self.queried_location = self.driver.find_element_by_css_selector('[data-test="store-button"]').text
+                print("location - " + self.queried_location)
+                self.update_location_db(self.queried_location,self.store_id)
+                return
+
 
     def parse_urls(self, response):
+        location = response.css('[data-test="store-button"] ::text').get()
+        self.driver=response.request.meta['driver']
+        location = self.driver.find_element_by_css_selector('[data-test="store-button"]').text
+        
+        print(f"parse_urls {location}")
+        if location is not self.location:
+            self.change_store_location(response)
+
         self.section_group = response.css(".subcategory.category")
         section_group = response.css(".subcategory.category")
         for section in section_group:
@@ -109,6 +156,9 @@ class wegmansScraper(scrapy.Spider):
         self.finish_url(response.url)
 
         next_url=self.get_next_url(1)
+        if next_url is None:
+            print ("No more URLs to parse. Finishing")
+            return
         request = self.create_parse_request(next_url)
         #FIXME these try except blocks don't actually handle timeout exceptions from navigating to the wrong url
         try:
@@ -178,6 +228,9 @@ class wegmansScraper(scrapy.Spider):
             }
         
         next_url = self.get_next_url(1)
+        if next_url is None:
+            print ("No more URLs to parse. Finishing")
+            return
         request  = self.create_parse_request(next_url)
         if next_url is not None:
             try:

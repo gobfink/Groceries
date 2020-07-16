@@ -8,6 +8,7 @@ class db_store(db.Model):
     __tablename__ = 'storeTable'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
+    location = db.Column(db.String(50))
     groceries_store = db.relationship('db_Grocery', backref='store', lazy='dynamic')
 
     def __repr__(self):
