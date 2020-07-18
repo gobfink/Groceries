@@ -37,6 +37,7 @@ class wegmansScraper(scrapy.Spider):
         self.cursor.execute(sql)
         url=self.cursor.fetchone()
         if url is None:
+            print ("get_next_url | couldn't find anymore urls to get returning none")
             return None
         else:
             url=url[0]
@@ -78,11 +79,7 @@ class wegmansScraper(scrapy.Spider):
         return request
 
     def start_requests(self):
-        store_query=f"SELECT id FROM storeTable where name='{self.store_name}' AND location='{self.location}'"
-        self.cursor = self.conn.cursor()
-        self.cursor.execute(store_query)
-        self.store_id=self.cursor.fetchone()[0]
-
+        self.store_id =self.find_store_id(self.location)
         if len(self.start_urls) != 0:
             url = self.start_urls.pop()
             self.store_url(url,"","","")
@@ -94,6 +91,13 @@ class wegmansScraper(scrapy.Spider):
 
         else:
             print("start_requests - len(start_urls) == 0 : exiting")
+
+    def find_store_id(self,location):
+        store_query=f"SELECT id FROM storeTable where name='{self.store_name}' AND location='{location}'"
+        self.cursor = self.conn.cursor()
+        self.cursor.execute(store_query)
+        store_id=self.cursor.fetchone()[0]
+        return store_id
 
     def update_location_db(self,location,store_id):
         store_update=f"UPDATE storeTable SET location=\"{location}\" WHERE id=\"{store_id}\""
@@ -124,7 +128,7 @@ class wegmansScraper(scrapy.Spider):
                 time.sleep(5)
                 self.queried_location = self.driver.find_element_by_css_selector('[data-test="store-button"]').text
                 print("set location - " + self.queried_location)
-                self.update_location_db(self.queried_location,self.store_id)
+                self.store_id=self.find_store_id(self.queried_location)
                 return
 
 
@@ -211,8 +215,9 @@ class wegmansScraper(scrapy.Spider):
             
             quantity=item.css('[data-test="amount"] .css-cpy6p ::text').get()
 
-            ounces=item.css('.cell-product-size ::text').get()
-            ounces=convert_to_ounces(ounces)
+            unit=item.css('.cell-product-size ::text').get()
+            ounces=convert_to_ounces(unit)
+
 
             ppu=item.css('[data-test="per-unit-price"] ::text').get()
             ppu=convert_ppu(ppu)
@@ -223,6 +228,7 @@ class wegmansScraper(scrapy.Spider):
                 "name": name,
                 "price": price,
                 "ounces": ounces,
+                "unit": unit,
                 "price-per-unit": ppu,
                 "url": url,
                 "section": section,

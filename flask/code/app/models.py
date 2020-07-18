@@ -29,6 +29,7 @@ class db_Grocery(db.Model):
     subsection = db.Column(db.String(60))
     price = db.Column(db.Float)
     ounces = db.Column(db.Float)
+    unit = db.Column(db.String(10))
     reported_price_per_unit = db.Column(db.String(30))
     brand = db.Column(db.String(80))
     date = db.Column(db.DateTime, default=False)

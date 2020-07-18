@@ -72,6 +72,7 @@ class GroceriesPipeline(object):
             category = lookup_category(name,section,subsection)
             print (f"process_item - {name} with category - {category}")
             ounces = handle_none(item.get("ounces"))
+            unit = handle_none(item.get("unit"))
 
             reported_price_per_unit = handle_none(item.get("price-per-unit"))
             brand = ""
@@ -79,7 +80,7 @@ class GroceriesPipeline(object):
             store_id = self.store_id
             url = item.get("url")
             #TODO break this into multiple lines
-            sql = f" INSERT INTO groceryTable (name, category, section, subsection, price, ounces,reported_price_per_unit, brand, date, store_id, url) VALUES (\"{name}\",\"{category}\",\"{section}\",\"{subsection}\",{price},{ounces},\"{reported_price_per_unit}\",\"{brand}\",\"{date}\",{store_id},\" {url} \");"
+            sql = f" INSERT INTO groceryTable (name, category, section, subsection, price, unit, ounces, reported_price_per_unit, brand, date, store_id, url) VALUES (\"{name}\",\"{category}\",\"{section}\",\"{subsection}\",{price},'{unit}',{ounces},\"{reported_price_per_unit}\",\"{brand}\",\"{date}\",{store_id},\" {url} \");"
 
             #print ( "adding sql : "+ sql )
             self.cursor.execute(sql)
