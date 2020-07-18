@@ -34,7 +34,7 @@ class db_Grocery(db.Model):
     date = db.Column(db.DateTime, default=False)
     price_density = db.column_property(price/ounces)
     store_id = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
-    url = db.Column(db.Sbtring(120))
+    url = db.Column(db.String(120))
 
 
     #TODO convert ids into values this will require pulling down the other tables, and somehow referencing them
@@ -55,8 +55,8 @@ class db_Urls(db.Model):
     url = db.Column(db.String(100))
     Updated = db.Column(db.DateTime, default=False)
     hits = db.Column(db.Integer)
-    store = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
-    scraped = db.Column(db.tinyint(1))
+    store_id = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
+    scraped = db.Column(db.Integer)
     category = db.Column(db.String(50))
     section = db.Column(db.String(50))
     subsection = db.Column(db.String(50))

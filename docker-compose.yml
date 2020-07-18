@@ -1,4 +1,4 @@
-version: '3.2'
+version: '3.5'
 services:
   splash-middleware:
      hostname: splash-middleware
@@ -23,6 +23,7 @@ services:
      build: 
        context: scrapy/
        dockerfile: Dockerfile.debug
+       shm_size: '3gb'
      hostname: scrapy
      environment: 
         - "DISPLAY"
@@ -42,6 +43,7 @@ services:
      build: 
        context: scrapy/
        dockerfile: Dockerfile.selenium.runtime
+       shm_size: '3gb'
      hostname: wegmans-scrapy
      environment: 
         - "PYTHONPATH=/code/groceries/groceries"
