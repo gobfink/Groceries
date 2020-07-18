@@ -1,4 +1,5 @@
 FROM python
-RUN pip install scrapy ; pip install scrapy-splash ; pip install mysqlclient
-RUN apt update ; apt install -y firefox-esr vim
-
+RUN pip install --upgrade pip; pip install scrapy ; pip install scrapy-splash ; pip install scrapy-selenium ; pip install mysqlclient  ; pip install selenium 
+RUN apt update ; apt install -y firefox-esr vim 
+ADD https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz /usr/local/bin 
+RUN tar -C /usr/local/bin -xvf /usr/local/bin/geckodriver-v0.26.0-linux64.tar.gz ; rm /usr/local/bin/geckodriver-v0.26.0-linux64.tar.gz ; chmod u+x /usr/local/bin/geckodriver

@@ -8,6 +8,7 @@ class db_store(db.Model):
     __tablename__ = 'storeTable'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
+    location = db.Column(db.String(50))
     groceries_store = db.relationship('db_Grocery', backref='store', lazy='dynamic')
 
     def __repr__(self):
@@ -28,12 +29,13 @@ class db_Grocery(db.Model):
     subsection = db.Column(db.String(60))
     price = db.Column(db.Float)
     ounces = db.Column(db.Float)
+    unit = db.Column(db.String(10))
     reported_price_per_unit = db.Column(db.String(30))
     brand = db.Column(db.String(80))
     date = db.Column(db.DateTime, default=False)
     price_density = db.column_property(price/ounces)
     store_id = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
-    url = db.Column(db.Sbtring(120))
+    url = db.Column(db.String(120))
 
 
     #TODO convert ids into values this will require pulling down the other tables, and somehow referencing them
@@ -42,4 +44,26 @@ class db_Grocery(db.Model):
     def __repr__(self):
         return '<Grocery: %s, Def: %s>'%(format(self.name),format(self.price))
 
+class db_Urls(db.Model):
+    """
+    Create Groceries table
+    """
+
+
+    __tablename__ = 'urlTable'
+
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String(100))
+    Updated = db.Column(db.DateTime, default=False)
+    hits = db.Column(db.Integer)
+    store_id = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
+    scraped = db.Column(db.Integer)
+    category = db.Column(db.String(50))
+    section = db.Column(db.String(50))
+    subsection = db.Column(db.String(50))
+    #TODO makesure timestamp is setup to change on update
+
+
+    def __repr__(self):
+        return '<URL: %s, section: %s, subsection %s>'%(format(self.url),format(self.section), format(self.subsection))
 

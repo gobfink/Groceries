@@ -35,20 +35,23 @@ class GroceriesPipeline(object):
 
         def open_spider(self, spider):
                 self.store_name = spider.store_name
+                self.location = handle_none(spider.location)
                 self.date = datetime.datetime.now()
                 self.conn = MySQLdb.connect(db=self.db,
                                               user=self.user,
                                               passwd=self.passwd,
                                               host=self.host,
                                               charset='utf8', use_unicode=True)
+                spider.conn = self.conn
                 #Look for the store in the store_table
-                store_query=f"SELECT id FROM storeTable where name='{self.store_name}'"
+                store_query=f"SELECT id FROM storeTable where name='{self.store_name}' AND location='{self.location}'"
                 self.cursor = self.conn.cursor()
                 self.cursor.execute(store_query)
                 fetched_id=self.cursor.fetchone()
                 #if it doesn't exist then add it
                 if fetched_id is None:
-                    add_store = f"INSERT INTO storeTable (name) VALUES (\"{self.store_name}\");"
+                    #TODO it would be nice to query the actually set location instead of trusting it to get set correctly
+                    add_store = f"INSERT INTO storeTable (name, location) VALUES (\"{self.store_name}\", \"{self.location}\");"
                     print(add_store)
                     self.cursor.execute(add_store)
                     self.conn.commit()
@@ -69,6 +72,7 @@ class GroceriesPipeline(object):
             category = lookup_category(name,section,subsection)
             print (f"process_item - {name} with category - {category}")
             ounces = handle_none(item.get("ounces"))
+            unit = handle_none(item.get("unit"))
 
             reported_price_per_unit = handle_none(item.get("price-per-unit"))
             brand = ""
@@ -76,7 +80,7 @@ class GroceriesPipeline(object):
             store_id = self.store_id
             url = item.get("url")
             #TODO break this into multiple lines
-            sql = f" INSERT INTO groceryTable (name, category, section, subsection, price, ounces,reported_price_per_unit, brand, date, store_id, url) VALUES (\"{name}\",\"{category}\",\"{section}\",\"{subsection}\",{price},{ounces},\"{reported_price_per_unit}\",\"{brand}\",\"{date}\",{store_id},\" {url} \");"
+            sql = f" INSERT INTO groceryTable (name, category, section, subsection, price, unit, ounces, reported_price_per_unit, brand, date, store_id, url) VALUES (\"{name}\",\"{category}\",\"{section}\",\"{subsection}\",{price},'{unit}',{ounces},\"{reported_price_per_unit}\",\"{brand}\",\"{date}\",{store_id},\" {url} \");"
 
             #print ( "adding sql : "+ sql )
             self.cursor.execute(sql)

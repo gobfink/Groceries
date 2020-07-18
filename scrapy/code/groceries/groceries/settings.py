@@ -9,6 +9,9 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+from shutil import which
+
+
 BOT_NAME = 'groceries'
 
 SPIDER_MODULES = ['groceries.spiders']
@@ -55,11 +58,23 @@ ROBOTSTXT_OBEY = True
 DOWNLOADER_MIDDLEWARES = {
     'scrapy_splash.SplashCookiesMiddleware': 723,
     'scrapy_splash.SplashMiddleware': 725,
+    'scrapy_selenium.SeleniumMiddleware': 800,
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
 }
-SPLASH_URL = 'http://scrapy-middleware:8050/'
+SPLASH_URL = 'http://splash-middleware:8050/'
 DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
 HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
+
+
+# TODO lookinto setting up a remote selenium driver container -- for some reason i can't really get this to work, the documentation is kinda confusing, and it won't run withouth a selenium_driver_executable_path
+#In order to use a remote Selenium driver, specify SELENIUM_COMMAND_EXECUTOR instead of SELENIUM_DRIVER_EXECUTABLE_PATH: python SELENIUM_COMMAND_EXECUTOR = 'http://selenium-middleware:4444/wd/hub' 
+#https://github.com/clemfromspace/scrapy-selenium
+#SELENIUM_COMMAND_EXECUTOR = 'http://selenium-middleware:4444/wd/hub'
+#SELENIUM_DRIVER_EXECUTABLE_PATH: python 
+
+SELENIUM_DRIVER_NAME = 'firefox'
+SELENIUM_DRIVER_EXECUTABLE_PATH = which('geckodriver')
+SELENIUM_DRIVER_ARGUMENTS=['-headless','-set_page_load_timeout=100']  
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -72,7 +87,7 @@ HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 ITEM_PIPELINES = {
     'groceries.pipelines.GroceriesPipeline': 300,
 }
-
+LOG_FILE="scrapy.log"
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
 #AUTOTHROTTLE_ENABLED = True
