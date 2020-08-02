@@ -1,3 +1,8 @@
+import datetime
+import MySQLdb
+
+
+
 def lookup_category(name,section,subsection):
 	categories = {
 	           #"Category name" : "search terms"
@@ -129,3 +134,58 @@ def clean_string(string,list_to_clean):
     for item in list_to_clean:
         string = string.replace(item,"")
     return string
+def get_url_metadata(cursor,url):
+        sql=f"SELECT category, section, subsection FROM urlTable WHERE url=\"{url}\""
+        print(f'get_url_metadata - {sql}')
+        cursor=self.conn.cursor()
+        cursor.execute(sql)
+        metadata=cursor.fetchone()
+        return (metadata)
+
+def get_next_url(cursor,iteration):
+    sql=f"SELECT url from urlTable WHERE scraped=0 ORDER BY updated DESC LIMIT {iteration}"
+    cursor.execute(sql)
+    url=cursor.fetchone()
+    if url is None:
+        print ("get_next_url | couldn't find anymore urls to get returning none")
+        return None
+    else:
+        url=url[0]
+        return url
+
+def store_url(conn,url,store_id,category,section,subsection):
+    time=datetime.datetime.now()
+    store_query=f"SELECT Hits FROM urlTable where url='{url}' AND store_id='{store_id}'"
+    cursor = conn.cursor()
+    cursor.execute(store_query)
+    hits=cursor.fetchone()
+    if hits is None:
+        store_url_sql = f"INSERT INTO urlTable (url, store_id, scraped, Updated, category, section, subsection, hits) VALUES (\"{url}\",{self.store_id},0,\"{time}\",\"{category}\",\"{section}\",\"{subsection}\",1);"
+        #print (f"store_url_sql - {store_url_sql}")
+        cursor.execute(store_url_sql)
+        conn.commit()
+    else:
+        hits=hits[0]+1
+        update=f" UPDATE urlTable SET hits={hits} WHERE url='{url}' AND store_id='{store_id}'"
+        #print(f"update - {update}")
+        cursor.execute(update)
+        conn.commit()
+
+def finish_url(conn,store_id,url):
+    url_update=f" UPDATE urlTable SET scraped=1 WHERE url=\"{url}\" AND store_id='{store_id}'"
+    cursor=conn.cursor()
+    cursor.execute(url_update)
+    conn.commit()
+    return url
+
+def find_store_id(cursor, store_name, location):
+    store_query=f"SELECT id FROM storeTable where name='{store_name}' AND location='{location}'"
+    cursor.execute(store_query)
+    store_id=cursor.fetchone()[0]
+    return store_id
+
+def update_location_db(conn,location,store_id):
+    cursor=conn.cursor()
+    store_update=f"UPDATE storeTable SET location=\"{location}\" WHERE id=\"{store_id}\""
+    cursor.execute(store_update)
+    conn.commit()
