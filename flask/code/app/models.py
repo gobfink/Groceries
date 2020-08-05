@@ -53,7 +53,7 @@ class db_Urls(db.Model):
     __tablename__ = 'urlTable'
 
     id = db.Column(db.Integer, primary_key=True)
-    url = db.Column(db.String(100))
+    url = db.Column(db.String(200))
     Updated = db.Column(db.DateTime, default=False)
     hits = db.Column(db.Integer)
     store_id = db.Column(db.Integer, db.ForeignKey('storeTable.id'))

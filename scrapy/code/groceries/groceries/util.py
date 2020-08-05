@@ -117,11 +117,12 @@ def read_script(script_file):
     return script
 
 
-def parse_float(input_list):
-    if input_list:
-        f = float(input_list[0])
-    else:
-        f = 0
+def parse_float(float_in):
+    try:
+        f = float(float_in)
+    except ValueError:
+        print (f"Parse_float - {float_in} is not a float")
+        f = 0 
     return f
 
 def read_script(script_file):
@@ -137,7 +138,6 @@ def clean_string(string,list_to_clean):
 def get_url_metadata(cursor,url):
         sql=f"SELECT category, section, subsection FROM urlTable WHERE url=\"{url}\""
         print(f'get_url_metadata - {sql}')
-        cursor=self.conn.cursor()
         cursor.execute(sql)
         metadata=cursor.fetchone()
         return (metadata)
@@ -148,32 +148,34 @@ def get_next_url(cursor,iteration):
     url=cursor.fetchone()
     if url is None:
         print ("get_next_url | couldn't find anymore urls to get returning none")
-        return None
     else:
         url=url[0]
-        return url
+    return url
 
 def store_url(conn,url,store_id,category,section,subsection):
     time=datetime.datetime.now()
-    store_query=f"SELECT Hits FROM urlTable where url='{url}' AND store_id='{store_id}'"
+    #url=url.replace("\'","\'\'")
+    store_query=f"SELECT Hits FROM urlTable where url=\"{url}\" AND store_id='{store_id}'"
+    print (f"store_query - {store_query}")
     cursor = conn.cursor()
     cursor.execute(store_query)
     hits=cursor.fetchone()
     if hits is None:
-        store_url_sql = f"INSERT INTO urlTable (url, store_id, scraped, Updated, category, section, subsection, hits) VALUES (\"{url}\",{self.store_id},0,\"{time}\",\"{category}\",\"{section}\",\"{subsection}\",1);"
-        #print (f"store_url_sql - {store_url_sql}")
+        store_url_sql = f"INSERT INTO urlTable (url, store_id, scraped, Updated, category, section, subsection, hits) VALUES (\"{url}\",{store_id},0,\"{time}\",\"{category}\",\"{section}\",\"{subsection}\",1);"
+        print (f"store_url_sql - {store_url_sql}")
         cursor.execute(store_url_sql)
         conn.commit()
     else:
         hits=hits[0]+1
-        update=f" UPDATE urlTable SET hits={hits} WHERE url='{url}' AND store_id='{store_id}'"
-        #print(f"update - {update}")
+        update=f" UPDATE urlTable SET hits={hits} WHERE url=\"{url}\" AND store_id='{store_id}'"
+        print(f"update - {update}")
         cursor.execute(update)
         conn.commit()
 
 def finish_url(conn,store_id,url):
     url_update=f" UPDATE urlTable SET scraped=1 WHERE url=\"{url}\" AND store_id='{store_id}'"
     cursor=conn.cursor()
+    print(f"finish_url - {url_update}")
     cursor.execute(url_update)
     conn.commit()
     return url
