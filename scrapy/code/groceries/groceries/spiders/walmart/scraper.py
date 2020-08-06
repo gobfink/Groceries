@@ -115,10 +115,33 @@ class walmartSpider(scrapy.Spider):
         GROCERY_SELECTOR = '[data-automation-id="productTile"]'
         SPONSORED_SELECTOR = '[data-automation-id="sponsoredProductTile"]'
         GROCERIES_SELECTOR = GROCERY_SELECTOR + ',' + SPONSORED_SELECTOR
+        NEXT_BUTTON = '[data-automation-id="nextButton"]'
+        # Handle pagination
         url = response.url
         metadata=get_url_metadata(self.cursor,url)
         section=metadata[1]
         subsection=metadata[2]
+        
+        next_page=response.css(NEXT_BUTTON).get()
+        if next_page is not None:
+            #inspect_response(response,self)
+            page_string="&page="
+            page_str_len=len(page_string)
+            i = url.find(page_string)
+            #if yes, check url if it has a page part on it
+            if i == -1:
+            #if no, add page 2  to it
+                next_url = url + page_string+"2"
+            else:
+            #if yes, extract page and add 1 
+                page_number = i+page_str_len
+                current_page = int(url[page_number:])
+                next_page = current_page + 1
+                next_url = url[:page_number] + str(next_page)
+            #then add to self.urls
+            store_url(self.conn,next_url, self.store_id, lookup_category("",section,subsection) ,section, subsection)
+
+
         for grocery in response.css(GROCERIES_SELECTOR):
             NAME_SELECTOR = '[data-automation-id="name"] ::attr(name)'
             self.name = grocery.css(NAME_SELECTOR).extract_first()
