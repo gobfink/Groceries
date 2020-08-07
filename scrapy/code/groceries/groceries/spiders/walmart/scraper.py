@@ -5,7 +5,7 @@ from scrapy.shell import inspect_response
 from scrapy_splash import SplashRequest
 import re
 
-from util import read_script, parse_float, lookup_category, get_next_url, get_url_metadata, store_url, clean_string, handle_none, finish_url
+from util import read_script, parse_float, lookup_category, get_next_url, get_url_metadata, store_url, clean_string, handle_none, finish_url, get_next_pagination
 
 def convert_ppu(incoming_ppu):
     if not incoming_ppu:
@@ -30,7 +30,7 @@ def convert_ppu(incoming_ppu):
 class walmartSpider(scrapy.Spider):
     name = "walmart_spider"
     store_name = "walmart"
-    start_urls = ['https://grocery.walmart.com']
+    start_urls = ['https://www.walmart.com/grocery']
     location="8386 Sudley Road"
     """
     These are intialized in pipelines.py
@@ -123,23 +123,14 @@ class walmartSpider(scrapy.Spider):
         subsection=metadata[2]
         
         next_page=response.css(NEXT_BUTTON).get()
+
         if next_page is not None:
             #inspect_response(response,self)
             page_string="&page="
             page_str_len=len(page_string)
-            i = url.find(page_string)
-            #if yes, check url if it has a page part on it
-            if i == -1:
-            #if no, add page 2  to it
-                next_url = url + page_string+"2"
-            else:
-            #if yes, extract page and add 1 
-                page_number = i+page_str_len
-                current_page = int(url[page_number:])
-                next_page = current_page + 1
-                next_url = url[:page_number] + str(next_page)
-            #then add to self.urls
-            store_url(self.conn,next_url, self.store_id, lookup_category("",section,subsection) ,section, subsection)
+            next_page_url=get_next_pagination(page_string,url)
+
+            store_url(self.conn,next_page_url, self.store_id, lookup_category("",section,subsection) ,section, subsection)
 
 
         for grocery in response.css(GROCERIES_SELECTOR):

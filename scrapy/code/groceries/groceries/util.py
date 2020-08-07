@@ -13,7 +13,7 @@ def lookup_category(name,section,subsection):
                "seafood": ["seafood","fish","crab","lobster","clam","scallop","shrimp","sushi"],
                "baked"  : ["bakery","bread","bagel","roll","muffin","donut"],
                "snacks" : ["snack","cookie","chip","pretzel","cand"],
-               "meat"   : ["meat","beef","steak","bacon","sausage","chicken","pork","meat"],
+               "meat"   : ["meat","beef","steak","bacon","sausage","chicken","pork","meat","hotdog"],
                "pasta"  : ["pasta"],
                "dessert": ["dessert","pie","ice cream","frozen yogurt", "cake"],
                "juice"  : ["juice"],
@@ -23,18 +23,25 @@ def lookup_category(name,section,subsection):
                "fruit"  : ["fruit","orange","banana","apple","peach"],
                "produce": ["vegetable","fresh","corn","tomato","onion","potato","produce"],
 	}
+    
+    exclusions = {
+               "pet"    : ["hotdog"],
+    }
+
 	name=name.lower()
 	section=section.lower()
 	subsection=subsection.lower()
 	ret=""
 	for category,terms in categories.items():
-		if any(term in subsection for term in terms):
+        exclusion = exclusions[category]
+
+		if not any(term in subsection for term in exclusion) and any(term in subsection for term in terms):
 			ret=category
 			break
-		elif any(term in section for term in terms):
+		elif not any(term in section for term in exclusion) and any(term in section for term in terms):
 			ret=category
 			break
-		elif any(term in name for term in terms):
+		elif not any(term in name for term in exclusion) and any(term in name for term in terms):
 			ret=category
 			break
 		
@@ -191,3 +198,24 @@ def update_location_db(conn,location,store_id):
     store_update=f"UPDATE storeTable SET location=\"{location}\" WHERE id=\"{store_id}\""
     cursor.execute(store_update)
     conn.commit()
+
+"""
+This function determines if the page supports pagination
+@Params page_string - the string that is added to the url for the next page
+@Params url - the url for the current page
+@returns the url of the next page or None if it doesn't support it
+"""
+def get_next_pagination(page_string,url):
+    page_str_len=len(page_string)
+    i = url.find(page_string)
+    #if yes, check url if it has a page part on it
+    if i == -1:
+    #if no, add page 2  to it
+        next_page_url = url + page_string+"2"
+    else:
+    #if yes, extract page and add 1 
+        page_number = i+page_str_len
+        current_page = int(url[page_number:])
+        next_page = current_page + 1
+        next_page_url = url[:page_number] + str(next_page)
+    return next_page_url
