@@ -28,10 +28,13 @@ def lookup_category(name, section, subsection):
         "fruit": ["fruit", "orange", "banana", "apple", "peach"],
         "produce":
         ["vegetable", "fresh", "corn", "tomato", "onion", "potato", "produce"],
+        "dairy" : ["dairy"],
     }
 
     exclusions = {
-        "pet": ["hotdog", "hot dog"],
+        "pet": ["hotdog", "hot dog", "categories"],
+        "baby": ["ribs"],
+        "oil": ["foil"],
     }
 
     name = name.lower()
@@ -41,7 +44,18 @@ def lookup_category(name, section, subsection):
     for category, terms in categories.items():
         if category in exclusions:
             exclusion = exclusions[category]
+        else:
+            exclusion = []
+        sections_and_name=subsection+" "+section+" "+name
 
+        if any(excl in sections_and_name for excl in exclusion):
+            #print(f" excluding - {sections_and_name} because of exclusion found in - {exclusion} for category {category}")
+            continue
+        elif any(term in sections_and_name for term in terms):
+            #print(f" found and matched- {sections_and_name} with terms - {terms} for category {category}")
+            ret = category
+            break
+        """
         if not any(term in subsection
                    for term in exclusion) and any(term in subsection
                                                   for term in terms):
@@ -57,7 +71,7 @@ def lookup_category(name, section, subsection):
                                                     for term in terms):
             ret = category
             break
-
+        """
     return ret
 
 

@@ -118,6 +118,7 @@ class walmartSpider(scrapy.Spider):
         NEXT_BUTTON = '[data-automation-id="nextButton"]'
         # Handle pagination
         url = response.url
+        print (f"working on url - {url}")
         metadata=get_url_metadata(self.cursor,url)
         section=metadata[1]
         subsection=metadata[2]
@@ -192,7 +193,8 @@ class walmartSpider(scrapy.Spider):
             }
 
         finish_url(self.conn,self.store_id,url)
-        next_url=get_next_url(self.cursor, 1)
+        next_url=get_next_url(self.cursor,1)
+
         print(f"next_url - {next_url}")
         if next_url is None:
             print ("No more urls - finishing")
