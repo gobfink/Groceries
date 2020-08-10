@@ -5,7 +5,7 @@ from scrapy.shell import inspect_response
 from scrapy_splash import SplashRequest
 import re
 
-from util import read_script, convert_cents
+from util import read_script, convert_cents, store_url, get_next_url, get_url_metadata, lookup_category, finish_url
 
 def convert_ppu(incoming_ppu):
     if not incoming_ppu:
@@ -54,6 +54,7 @@ class lidlScraper(scrapy.Spider):
     section_dict = {}
     urls = []
     processedUrls = []
+    location = "default"
 
     def start_requests(self):
         print ("lua script - " + self.expand_and_scroll_lua)
@@ -68,6 +69,7 @@ class lidlScraper(scrapy.Spider):
         # to the list and keeps going
         # if its not, then it calls the lua to prepare the page 
         # for scraping, and then scrapes it  
+        url = response.url
         
         menu = response.css(".category-filter__link")
         #submenu = response.css("")
@@ -82,6 +84,7 @@ class lidlScraper(scrapy.Spider):
         #inspect_response(response,self)
 
         if (len(menu) > 0  and menu[0].css('[aria-current="page"]')):
+            print (f"inside menu page for url - {url}")
             # The top page is active
             #print ("menu[0] : [aria-current=page] " + menu[0].css('[aria-current="page"]').get())
             # therefore we need to scrape the links, and continue searching
@@ -92,11 +95,16 @@ class lidlScraper(scrapy.Spider):
             menu_name=menu[0].css('.category-filter__text ::text').get()
             for item in menu:
                 heading = item.css('.category-filter__text ::text').get()
-                url = item.css('::attr(href)').get()
-                url = self.base_url+url
-                self.section_dict[url]=(menu_name, heading)
-                if self.urls.count(url) == 0:
-                    self.urls.append(url)
+                scraped_url = item.css('::attr(href)').get()
+                scraped_url = self.base_url+scraped_url
+                section=menu_name
+                subsection=heading
+                category=lookup_category("",section,subsection)
+                store_url(self.conn,scraped_url,self.store_id,category,section,subsection)
+
+                #self.section_dict[url]=(menu_name, heading)
+                #if self.urls.count(url) == 0:
+                #    self.urls.append(url)
 
 
             #urls=menu.css('::attr(href)').getall()
@@ -106,7 +114,7 @@ class lidlScraper(scrapy.Spider):
             #print("urls to scrape - " + str(self.urls))
             #print("local urls - " + str(urls))
 
-
+            """
             while len(self.urls) != 0:
                 url = self.urls.pop()
                 self.processedUrls.append(url)
@@ -118,7 +126,7 @@ class lidlScraper(scrapy.Spider):
                                 self.parse,
                                 endpoint='execute',
                                 args={'lua_source': self.expand_and_scroll_lua})
-
+            """
 
         elif (len(menu) == 0):
             inspect_response(response, self)
@@ -132,16 +140,19 @@ class lidlScraper(scrapy.Spider):
             PRICE_SELECTOR = '.price ::text'
             PRICE_PER_UNIT_SELECTOR = '.sub-headline.detail-card-subtext ::text'
             
-            url = response.url
-            sections = self.section_dict[url]
-            section = sections[0]
-            subsection = sections[1]
-            print("subpage - scraping " + response.url + ", from section - "+section)
+            
+            metadata = get_url_metadata(self.cursor,url)
+            section = metadata[0]
+            subsection = metadata[1]
+            print("subpage - scraping " + url + ", from section - "+section)
             for grocery in response.css(GROCERY_SELECTOR):
                 self.name = grocery.css(NAME_SELECTOR).extract_first()
                 self.price = grocery.css(PRICE_SELECTOR).extract_first()
-                self.price = self.price.replace('*','').replace('$','')
-                self.ppu = convert_ppu(grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first())
+                if self.price is not None:
+                    self.price = self.price.replace('*','').replace('$','')
+                self.ppu = grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first()
+                if self.ppu is not None:
+                    self.ppu = convert_ppu(self.ppu) 
                 #inspect_response(response, self)
                 #parse the ounces off of the name
                 yield {
@@ -158,3 +169,15 @@ class lidlScraper(scrapy.Spider):
                     'url':
                     response.url
                 }
+        finish_url(self.conn,self.store_id,url)
+        print("finishing url - " + url)
+        next_url = get_next_url(self.cursor, 1)
+        if next_url is not None:
+            print("got next_url - " +next_url)
+            yield SplashRequest(next_url,
+                                self.parse,
+                                endpoint='execute',
+                                dont_filter=True,
+                                args={'lua_source': self.expand_and_scroll_lua})
+        else:
+            print ("Next url is none therefore we must be finished ! ")

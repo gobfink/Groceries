@@ -46,6 +46,7 @@ class GroceriesPipeline(object):
                 #Look for the store in the store_table
                 store_query=f"SELECT id FROM storeTable where name='{self.store_name}' AND location='{self.location}'"
                 self.cursor = self.conn.cursor()
+                spider.cursor = self.cursor
                 self.cursor.execute(store_query)
                 fetched_id=self.cursor.fetchone()
                 #if it doesn't exist then add it
@@ -61,6 +62,8 @@ class GroceriesPipeline(object):
                     fetched_id=self.cursor.fetchone()
 
                 self.store_id=fetched_id[0]
+                spider.store_id=self.store_id
+                print(f"open_spider: store_id={self.store_id}")
 
         def process_item(self, item, spider):
         # sql = "INSERT INTO table (field1, field2, field3) VALUES (%s, %s, %s)"

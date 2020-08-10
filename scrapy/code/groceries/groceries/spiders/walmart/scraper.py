@@ -5,7 +5,7 @@ from scrapy.shell import inspect_response
 from scrapy_splash import SplashRequest
 import re
 
-from util import read_script, parse_float
+from util import read_script, parse_float, lookup_category, get_next_url, get_url_metadata, store_url, clean_string, handle_none, finish_url, get_next_pagination
 
 def convert_ppu(incoming_ppu):
     if not incoming_ppu:
@@ -30,7 +30,14 @@ def convert_ppu(incoming_ppu):
 class walmartSpider(scrapy.Spider):
     name = "walmart_spider"
     store_name = "walmart"
-    start_urls = ['https://grocery.walmart.com']
+    start_urls = ['https://www.walmart.com/grocery']
+    location="8386 Sudley Road"
+    """
+    These are intialized in pipelines.py
+    """
+    conn = ""
+    cursor = ""
+    store_id=-1
 
     #start_urls = ['https://www.target.com/c/grocery/-/N-5xt1a?Nao=0']
 
@@ -47,9 +54,9 @@ class walmartSpider(scrapy.Spider):
         #1. sort through data and extract urls
         #2. put urls together
         #3. Loop to each url, returning @parse
-        base_url = self.start_urls[0]
+        base_url = "https://www.walmart.com"
         self.raw = response.body_as_unicode()
-        print("raw: " + self.raw)
+        #print("raw: " + self.raw)
         remove = ['{', '}', 'Link', ' ']
         self.cleaned = self.raw
         for char in remove:
@@ -64,45 +71,69 @@ class walmartSpider(scrapy.Spider):
         #print ("colon_split - ")
         #print (*colon_split)
         self.urls = [entry[-1] for entry in self.colon_split]
-        print("urls - ")
-        print(self.urls)
+        #print("urls - ")
+        #print(self.urls)
 
-        self.section = "unset"
-        self.subsection = "unset"
+        section = "unset"
+        subsection = "unset"
 
         self.section_dict = {}
+        chars_to_remove=["\'","&"]
         for entry in self.colon_split:
 
             # each entry will have a subheading (normally at 0 unless it has a heading entry)
-            self.subsection = entry[0]
-            url_end = entry[-1]
+            section = clean_string(entry[0],chars_to_remove)
+            url_end = clean_string(entry[-1],"\"")
 
             # if its a section header it will contain 3 entries
             #   and all subsequent entries will have the same heading
             if len(entry) > 2:
-                self.section = entry[0]
-                self.subsection = entry[1]
+                section = clean_string(entry[0],chars_to_remove)
+                subsection = clean_string(entry[1],chars_to_remove)
 
             url = base_url + url_end
-            self.section_dict[url] = (self.section, self.subsection)
+            category=lookup_category("",section,subsection)
+            store_url(self.conn,url,self.store_id,category,section,subsection)
+            #self.section_dict[url] = (self.section, self.subsection)
 
-            print(self.section, self.subsection, url)
+            #print(section, subsection, url)
+
+        next_url=get_next_url(self.cursor, 1)
+        if next_url is None:
+            print("No more urls to parse finishing")
+        else:    
             yield SplashRequest(url,
-                                self.parse,
-                                endpoint='render.html',
-                                args={
-                                    'wait': 10,
-                                    'section': self.section,
-                                    'subsection': self.subsection
-                                })
+                            self.parse,
+                            endpoint='render.html',
+                            args={
+                                'wait': 10,
+                                'section': section,
+                                'subsection': subsection
+                            })
 
     def parse(self, response):
         GROCERY_SELECTOR = '[data-automation-id="productTile"]'
         SPONSORED_SELECTOR = '[data-automation-id="sponsoredProductTile"]'
         GROCERIES_SELECTOR = GROCERY_SELECTOR + ',' + SPONSORED_SELECTOR
+        NEXT_BUTTON = '[data-automation-id="nextButton"]'
+        # Handle pagination
         url = response.url
-        section = self.section_dict[url][0]
-        subsection = self.section_dict[url][1]
+        print (f"working on url - {url}")
+        metadata=get_url_metadata(self.cursor,url)
+        section=metadata[1]
+        subsection=metadata[2]
+        
+        next_page=response.css(NEXT_BUTTON).get()
+
+        if next_page is not None:
+            #inspect_response(response,self)
+            page_string="&page="
+            page_str_len=len(page_string)
+            next_page_url=get_next_pagination(page_string,url)
+
+            store_url(self.conn,next_page_url, self.store_id, lookup_category("",section,subsection) ,section, subsection)
+
+
         for grocery in response.css(GROCERIES_SELECTOR):
             NAME_SELECTOR = '[data-automation-id="name"] ::attr(name)'
             self.name = grocery.css(NAME_SELECTOR).extract_first()
@@ -114,10 +145,21 @@ class walmartSpider(scrapy.Spider):
                                      self.name, re.IGNORECASE)
             self.count = re.findall("([\d]+)\s*(?:c(?:t|ount)|p(?:k|ack))",
                                     self.name, re.IGNORECASE)
+            #Check if the arrays returned from re.findall are empty
+            if self.ounces:
+                self.ounces = parse_float(self.ounces[0])
+            else:
+                self.ounces = 0
+            if self.pounds:
+                self.pounds = parse_float(self.pounds[0])
+            else:
+                self.pounds = 0
+            if self.count:
+                self.count = parse_float(self.count[0])
+            else:
+                self.count = 0
 
-            self.ounces = parse_float(self.ounces)
-            self.pounds = parse_float(self.pounds)
-            self.count = parse_float(self.count)
+
 
             if self.pounds != 0:
                 self.ounces = 16*self.pounds
@@ -129,23 +171,39 @@ class walmartSpider(scrapy.Spider):
             PRICE_SELECTOR = '[data-automation-id="price"] ::text'
             PRICE_PER_UNIT_SELECTOR = '[data-automation-id="price-per-unit"] ::text'
 
+            name=grocery.css(NAME_SELECTOR).extract_first()
+            name=clean_string(name,"\"")
+            ounces=self.ounces
+            pounds=self.pounds
+            count=self.count
+            price=str(handle_none(grocery.css(SALEPRICE_SELECTOR).extract_first())).replace('$','')
+            ppu=convert_ppu(grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first())
+            url=response.url
+
             yield {
-                'name':
-                grocery.css(NAME_SELECTOR).extract_first(),
-                'ounces':
-                self.ounces,
-                'pounds':
-                self.pounds,
-                'count':
-                self.count,
-                'price':
-                grocery.css(SALEPRICE_SELECTOR).extract_first().replace('$',''),
-                'price-per-unit':
-                convert_ppu(grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first()),
-                'section':
-                section,
-                'subsection':
-                subsection,
-                'url':
-                response.url,
+                'name': name,
+                'ounces': ounces,
+                'pounds': pounds,
+                'count': count,
+                'price': price,
+                'price-per-unit': ppu,
+                'section': section,
+                'subsection': subsection,
+                'url': url,
             }
+
+        finish_url(self.conn,self.store_id,url)
+        next_url=get_next_url(self.cursor,1)
+
+        print(f"next_url - {next_url}")
+        if next_url is None:
+            print ("No more urls - finishing")
+        else:
+            yield SplashRequest(next_url,
+                        self.parse,
+                        endpoint='render.html',
+                        args={
+                            'wait': 10,
+                            'section': section,
+                            'subsection': subsection
+                        })
