@@ -172,10 +172,12 @@ class lidlScraper(scrapy.Spider):
         finish_url(self.conn,self.store_id,url)
         print("finishing url - " + url)
         next_url = get_next_url(self.cursor, 1)
-        print("got next_url - " +next_url)
         if next_url is not None:
+            print("got next_url - " +next_url)
             yield SplashRequest(next_url,
                                 self.parse,
                                 endpoint='execute',
                                 dont_filter=True,
                                 args={'lua_source': self.expand_and_scroll_lua})
+        else:
+            print ("Next url is none therefore we must be finished ! ")
