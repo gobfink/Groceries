@@ -148,8 +148,11 @@ class lidlScraper(scrapy.Spider):
             for grocery in response.css(GROCERY_SELECTOR):
                 self.name = grocery.css(NAME_SELECTOR).extract_first()
                 self.price = grocery.css(PRICE_SELECTOR).extract_first()
-                self.price = self.price.replace('*','').replace('$','')
-                self.ppu = convert_ppu(grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first())
+                if self.price is not None:
+                    self.price = self.price.replace('*','').replace('$','')
+                self.ppu = grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first()
+                if self.ppu is not None:
+                    self.ppu = convert_ppu(self.ppu) 
                 #inspect_response(response, self)
                 #parse the ounces off of the name
                 yield {

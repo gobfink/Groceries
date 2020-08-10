@@ -27,14 +27,16 @@ def lookup_category(name, section, subsection):
         "cheese": ["cheese"],
         "fruit": ["fruit", "orange", "banana", "apple", "peach"],
         "produce":
-        ["vegetable", "fresh", "corn", "tomato", "onion", "potato", "produce"],
+        ["vegetable", "corn", "tomato", "onion", "potato", "produce"],
         "dairy" : ["dairy"],
     }
 
     exclusions = {
-        "pet": ["hotdog", "hot dog", "categories"],
+        "pet": ["hotdog", "hot dog", "categories", "petite"],
         "baby": ["ribs"],
-        "oil": ["foil"],
+        "oil": ["foil", "free"],
+        "alcohol": ["vinegar", "root", "non"],
+        "seafood": ["scalloped"],
     }
 
     name = name.lower()
