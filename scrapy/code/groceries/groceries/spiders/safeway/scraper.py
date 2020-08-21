@@ -13,7 +13,7 @@ import time
 #TODO change to selenium so that we can update the location!!!
 import re
 
-from util import read_script, convert_cents, store_url, get_next_url, get_url_metadata, lookup_category, finish_url
+from util import read_script, convert_cents, store_url, get_next_url, get_url_metadata, lookup_category, finish_url, get_next_pagination
 
 def convert_ppu(incoming_ppu):
     if not incoming_ppu:
@@ -22,9 +22,9 @@ def convert_ppu(incoming_ppu):
     charactersToRemove = ['$', ' ']
     for remove in charactersToRemove:
         ppu = ppu.replace(remove,'')
-    if ppu.find('per') is not -1:
+    if ppu.find('per') != -1:
         ppuSplit = ppu.split('per')
-    elif ppu.find('each') is not -1:
+    elif ppu.find('each') != -1:
         # Split off the each, and add it on manually
         ppuSplit = ppu.split('each')
         print ("ppu - " + ppu + ", ppuSplit - " + str(ppuSplit))
@@ -57,7 +57,7 @@ class safewayScraper(scrapy.Spider):
     name = "safeway_spider"
     store_name = "safeway"
     start_urls = ["https://www.safeway.com/shop/aisles.1431.html"]
-    base_url = "https://www.safeway.com/"
+    base_url = "https://www.safeway.com"
 
     #expand_and_scroll_lua = read_script("prepareForScraping.lua")
     section_dict = {}
@@ -65,6 +65,7 @@ class safewayScraper(scrapy.Spider):
     processedUrls = []
     location = "12821 Braemar Village Plaza"
     zipcode = "20136"
+    page_str="?sort=&page="
 
     def start_requests(self):
         #print ("lua script - " + self.expand_and_scroll_lua)
@@ -102,129 +103,73 @@ class safewayScraper(scrapy.Spider):
         if current_location != self.location:
             print ("changing location")
             self.change_location()
-            location_request = create_unfiltered_parse_request(self.start_urls[0],self.check_location,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
-            yield location_request
         else:
             print(f"current location is already {current_location} == {self.location}")
 
-    def parse(self, response):
-        # This callback determines if the selected menu is 
-        # at the top of the list, if it is then it adds the urls 
-        # to the list and keeps going
-        # if its not, then it calls the lua to prepare the page 
-        # for scraping, and then scrapes it  
+        scrape_request = create_unfiltered_parse_request(self.start_urls[0],self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
+        yield scrape_request
+
+    def scrape_urls(self,response):
+        #view_alls = response.css('.text-uppercase.view-all-subcats ::attr(href)').getall()
+        mainGroups = response.css('.col-12.col-sm-12.col-md-4.col-lg-4.col-xl-3')
+        #TODO can probably infer some categories from location
+        for mainGroup in mainGroups:
+            view_all = mainGroup.css('.text-uppercase.view-all-subcats ::attr(href)').get()
+            view_all_url = self.base_url + view_all
+            section = mainGroup.css('.product-title.text-uppercase ::text').get()
+            category = lookup_category("",section,"")
+            #print (f"view_all_url - {view_all_url}, section - {section}, category - {category}")
+            store_url(self.conn,view_all_url,self.store_id, category,section,"")
+
+        siblingAisles = response.css('.siblingAisle')
+        for siblingAisle in siblingAisles:
+            href = siblingAisle.css('::attr(href)').get()
+            siblingAisleUrl = self.base_url + href
+            section = response.css('[aria-current="location"] ::text').get()
+            subsection = siblingAisle.css('::text').get()
+            category = lookup_category("",section,subsection)
+            store_url(self.conn,siblingAisleUrl,self.store_id,category,section,subsection)
+#
+        #check if it has a load-more button and then increment page number on it
+        if response.css('.primary-btn.btn.btn-default.btn-secondary.bloom-load-button').get() is not None:
+            path = response.css('[aria-current]:not(.menu-nav__sub-item)').getall()
+            print(f"path - {path} for url - {response.url}")
+            section = path[1]
+            subsection = path[-1]
+            category = lookup_category("",section,subsection)
+            next_page_url=get_next_pagination(self.page_str,response.url)
+            print (f'load-more-button. storing - {next_page_url}, section - {section}, subsection - {subsection}, category - {category}')
+            store_url(self.conn,next_page_url,self.store_id,category,section,subsection)
+
+        # need to test this, also need to iterate through the different urls
+       # sections = response.css('squaredThree.department-filter-department ::attr(href)').getall()
+        #for section in sections:
+        #    section_url = self.base_url + section
+        #    print(f"scrape_urls - {section}")
+        # This function looks for valid urls on the pages and adds them to the database
+        # Types of urls to add -
+        # - Main landing page, add the VIEW ALL section
+        # - In section page add those in the .nav.flex-column or the aria-labelledby=departmentText
+    
+    def scrape(self,response):
         url = response.url
-        # first we should look for the location and change if necessary
-        # it needs to go through each section on the table and add the urls
-        # if it has a load more button add incremented page counter
-        # then scrape urls
-        menu = response.css(".category-filter__link")
-        #submenu = response.css("")
-        #print ("self.urls - " +str(self.urls))
-        print ("processing response.url - " + response.url)
+        print (f"inside scrape for {url}")
 
-        #print ("menu: ")
-        #print (menu.getall())
-        #print ("len(menu): " + str(len(menu)))
-        #print ("menu[0] : " + menu.get())
-        #print("name - " + menu[0].css('.category-filter__text ::text').get())
-        #inspect_response(response,self)
-
-        if (len(menu) > 0  and menu[0].css('[aria-current="page"]')):
-            print (f"inside menu page for url - {url}")
-            # The top page is active
-            #print ("menu[0] : [aria-current=page] " + menu[0].css('[aria-current="page"]').get())
-            # therefore we need to scrape the links, and continue searching
-            # we then need to loop through each other page.
-            # call parse, and scrape it is not
-            menu_url=menu[0].css('::attr(href)').get()
-
-            menu_name=menu[0].css('.category-filter__text ::text').get()
-            for item in menu:
-                heading = item.css('.category-filter__text ::text').get()
-                scraped_url = item.css('::attr(href)').get()
-                scraped_url = self.base_url+scraped_url
-                section=menu_name
-                subsection=heading
-                category=lookup_category("",section,subsection)
-                store_url(self.conn,scraped_url,self.store_id,category,section,subsection)
-
-                #self.section_dict[url]=(menu_name, heading)
-                #if self.urls.count(url) == 0:
-                #    self.urls.append(url)
-
-
-            #urls=menu.css('::attr(href)').getall()
-            # Remove the the first(this) page from list to parse
-            #urls.pop()
-            #self.urls.extend(urls)
-            #print("urls to scrape - " + str(self.urls))
-            #print("local urls - " + str(urls))
-
-            """
-            while len(self.urls) != 0:
-                url = self.urls.pop()
-                self.processedUrls.append(url)
-                #url = self.base_url + url_suffix
-                #print ("urls - " + str(self.urls))
-                #print ("pulling from url - " + url)
-                #print ("urls lengths - " + str(len(self.urls)))
-                yield SplashRequest(url,
-                                self.parse,
-                                endpoint='execute',
-                                args={'lua_source': self.expand_and_scroll_lua})
-            """
-
-        elif (len(menu) == 0):
-            inspect_response(response, self)
-
-        else:
-            #we are on a subpage, so now we can start scraping
-            #    
-        
-            GROCERY_SELECTOR = '.grid-item'
-            NAME_SELECTOR = '.small-type.detail-card-description ::text'
-            PRICE_SELECTOR = '.price ::text'
-            PRICE_PER_UNIT_SELECTOR = '.sub-headline.detail-card-subtext ::text'
-            
-            
-            metadata = get_url_metadata(self.cursor,url)
-            section = metadata[0]
-            subsection = metadata[1]
-            print("subpage - scraping " + url + ", from section - "+section)
-            for grocery in response.css(GROCERY_SELECTOR):
-                self.name = grocery.css(NAME_SELECTOR).extract_first()
-                self.price = grocery.css(PRICE_SELECTOR).extract_first()
-                if self.price is not None:
-                    self.price = self.price.replace('*','').replace('$','')
-                self.ppu = grocery.css(PRICE_PER_UNIT_SELECTOR).extract_first()
-                if self.ppu is not None:
-                    self.ppu = convert_ppu(self.ppu) 
-                #inspect_response(response, self)
-                #parse the ounces off of the name
-                yield {
-                    'name':
-                    self.name,
-                    'price':
-                    self.price,
-                    'price-per-unit':
-                    self.ppu,
-                    'section':
-                    section,
-                    'subsection':
-                    subsection,
-                    'url':
-                    response.url
-                }
+    def parse(self, response):
+        url = response.url
+        print (f"inside parse for {url}")
+        self.scrape_urls(response)
+        print (f"finished parse for {url}")
+        page_1_str=self.page_str+"1"
+        if url.find(page_1_str) != -1:
+            non_redirected_url = url.replace(page_1_str,'')
+            url = non_redirected_url
         finish_url(self.conn,self.store_id,url)
         print("finishing url - " + url)
         next_url = get_next_url(self.cursor, 1)
         if next_url is not None:
             print("got next_url - " +next_url)
-            yield SplashRequest(next_url,
-                                self.parse,
-                                endpoint='execute',
-                                dont_filter=True,
-                                args={'lua_source': self.expand_and_scroll_lua})
+            next_request = create_parse_request(next_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
+            yield next_request
         else:
             print ("Next url is none therefore we must be finished ! ")
