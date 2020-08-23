@@ -55,6 +55,24 @@ services:
      - backend
      entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
      working_dir: /code/groceries/groceries/spiders/wegmans
+  safeway:
+     volumes:
+     - ./scrapy/code:/code
+     build: 
+       context: scrapy/
+       dockerfile: Dockerfile.selenium.runtime
+       shm_size: '3gb'
+     hostname: wegmans-scrapy
+     environment: 
+        - "PYTHONPATH=/code/groceries/groceries"
+     depends_on:
+     -  db
+     -  adminer
+     networks:
+     - backend
+     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+     working_dir: /code/groceries/groceries/spiders/safeway
+     restart: unless-stopped
   lidl:
     volumes:
     - ./scrapy/code:/code

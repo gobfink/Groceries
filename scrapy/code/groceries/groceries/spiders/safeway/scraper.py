@@ -117,6 +117,7 @@ class safewayScraper(scrapy.Spider):
             view_all = mainGroup.css('.text-uppercase.view-all-subcats ::attr(href)').get()
             view_all_url = self.base_url + view_all
             section = mainGroup.css('.product-title.text-uppercase ::text').get()
+            section = section.strip()
             category = lookup_category("",section,"")
             #print (f"view_all_url - {view_all_url}, section - {section}, category - {category}")
             store_url(self.conn,view_all_url,self.store_id, category,section,"")
@@ -126,46 +127,86 @@ class safewayScraper(scrapy.Spider):
             href = siblingAisle.css('::attr(href)').get()
             siblingAisleUrl = self.base_url + href
             section = response.css('[aria-current="location"] ::text').get()
+            section = section.strip()
             subsection = siblingAisle.css('::text').get()
+            subsection = subsection.strip()
             category = lookup_category("",section,subsection)
             store_url(self.conn,siblingAisleUrl,self.store_id,category,section,subsection)
 #
         #check if it has a load-more button and then increment page number on it
         if response.css('.primary-btn.btn.btn-default.btn-secondary.bloom-load-button').get() is not None:
-            path = response.css('[aria-current]:not(.menu-nav__sub-item)').getall()
-            print(f"path - {path} for url - {response.url}")
+            path = response.css('[aria-current]:not(.menu-nav__sub-item) ::text').getall()
+            #print(f"path - {path} for url - {response.url}")
             section = path[1]
-            subsection = path[-1]
+            section = section.strip()
+            subsection = path[-2]
+            subsection = subsection.strip()
             category = lookup_category("",section,subsection)
             next_page_url=get_next_pagination(self.page_str,response.url)
             print (f'load-more-button. storing - {next_page_url}, section - {section}, subsection - {subsection}, category - {category}')
             store_url(self.conn,next_page_url,self.store_id,category,section,subsection)
 
-        # need to test this, also need to iterate through the different urls
-       # sections = response.css('squaredThree.department-filter-department ::attr(href)').getall()
-        #for section in sections:
-        #    section_url = self.base_url + section
-        #    print(f"scrape_urls - {section}")
-        # This function looks for valid urls on the pages and adds them to the database
-        # Types of urls to add -
-        # - Main landing page, add the VIEW ALL section
-        # - In section page add those in the .nav.flex-column or the aria-labelledby=departmentText
-    
     def scrape(self,response):
         url = response.url
         print (f"inside scrape for {url}")
+        inspect_response(response,self)
+        items = response.css('product-item-v2')
+        metadata=get_url_metadata(self.cursor,url)
+        section=metadata[1]
+        subsection=metadata[2]
+        for item in items:
+            name = item.css('.product-title ::text').get()
+            price = item.css('.product-price ::text').get()
+            ppu = item.css('.product-price-qty ::text').get()
+            ounces = self.collect_ounces(name)
+            unit = self.collect_units(name)
+            yield{
+              "name": name,
+              "price": price,
+              "ounces": ounces,
+              "unit": unit,
+              "price-per-unit": ppu,
+              "url": url,
+              "section": section,
+              "subsection": subsection
+            }
 
     def parse(self, response):
-        url = response.url
-        print (f"inside parse for {url}")
+        this_url = response.url
+        print (f"inside parse for {this_url}")
         self.scrape_urls(response)
-        print (f"finished parse for {url}")
+
+        # Only scrape pages that have the page_str in the url.
+        if this_url.find(self.page_str) != -1:
+            print (f"scraping for {this_url}")
+            #inspect_response(response,self)
+            items = response.css('product-item-v2')
+            metadata=get_url_metadata(self.cursor,this_url)
+            section=metadata[1]
+            subsection=metadata[2]
+            for item in items:
+                name = item.css('.product-title ::text').get()
+                price = item.css('.product-price ::text').get()
+                ppu = item.css('.product-price-qty ::text').get()
+                ounces = self.collect_ounces(name)
+                unit = self.collect_units(name)
+                yield{
+                  "name": name,
+                  "price": price,
+                  "ounces": ounces,
+                  "unit": unit,
+                  "price-per-unit": ppu,
+                  "url": this_url,
+                  "section": section,
+                  "subsection": subsection
+                }
+
         page_1_str=self.page_str+"1"
-        if url.find(page_1_str) != -1:
-            non_redirected_url = url.replace(page_1_str,'')
-            url = non_redirected_url
-        finish_url(self.conn,self.store_id,url)
-        print("finishing url - " + url)
+        if this_url.endswith(page_1_str):
+            non_redirected_url = this_url.replace(page_1_str,'')
+            this_url = non_redirected_url
+        finish_url(self.conn,self.store_id,this_url)
+        print("finishing url - " + this_url)
         next_url = get_next_url(self.cursor, 1)
         if next_url is not None:
             print("got next_url - " +next_url)
@@ -173,3 +214,33 @@ class safewayScraper(scrapy.Spider):
             yield next_request
         else:
             print ("Next url is none therefore we must be finished ! ")
+    
+    def collect_ounces(string):
+        split = string.split('-')
+        ounces = 0
+
+        if len(split) == 1:
+            print (f"No -'s found in {string} - not updating ounces")
+        elif len(split) == 2:
+            weight = split[1]
+            ounces = convert_to_ounces(weight)
+        elif len(split) == 3:
+            quantity = split[1]
+            weight = split[2]
+            ounces = convert_to_ounces(weight) * int(quantity)
+        else:
+            print(f"Collect_ounces too many '-'s in string {string}")
+            ounces = 0
+        return ounces
+    def collect_units(string):
+        hyp_split = string.split('-')
+        if len(hyp_split) < 2 :
+            print(f"unable to collect units from {string}")
+            return ""
+        unit_section = hyp_split[-1]
+        space_split = unit_section.split(' ')
+        #should always be the second entry (when it follows the )
+        unit = space_split[1].lower()
+        unit = convert_units(unit)
+        return unit
+

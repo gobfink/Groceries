@@ -77,22 +77,6 @@ def lookup_category(name, section, subsection):
     return ret
 
 
-def convert_units(units):
-    if units == "ounce":
-        units = "OZ"
-    elif units == "lb.":
-        units = "LB"
-    elif units == "each":
-        units = "EA"
-    elif units == "ct.":
-        units = "CT"
-    elif units == "fl. oz.":
-        units = "FLOZ"
-    elif units == "sq. ft.":
-        units = "SQFT"
-    elif units == "yd. ":
-        units = "YD"
-    return units
 
 
 def convert_ppu(incoming_ppu):
@@ -113,15 +97,22 @@ def convert_ppu(incoming_ppu):
     return ppu
 
 
+
 def convert_to_ounces(weight):
     if weight is None:
         return weight
     ret = 0
     weight.replace(' ', '')
+    weight=weight.lower()
     if (weight.find("ounce") != -1):
         ret = weight.replace('ounce', '')
+    elif (weight.find("oz")):
+        ret = weight.replace("oz",'')
     elif (weight.find("lb.") != -1):
         ret = weight.replace('lb.', '')
+        ret = float(ret) * 16
+    elif (weight.find("lbs.")):
+        ret = weight.replace('lbs.','')
         ret = float(ret) * 16
     else:
         print("convert_to_ounces - unsupported weight of: " + weight)
@@ -139,7 +130,7 @@ def convert_dollars(price):
 
 def convert_cents(price):
     p = price
-    if price.find('¢') is not -1:
+    if price.find('¢') != -1:
         p = p.replace('¢', '')
         p = p.replace('.', '')
         p = "0." + p
@@ -268,3 +259,21 @@ def get_next_pagination(page_string, url):
         next_page = current_page + 1
         next_page_url = url[:page_number] + str(next_page)
     return next_page_url
+
+def convert_units(units):
+    units = clean_string(units,['.',' '])
+    if units == "ounce" or units == "oz":
+        units = "OZ"
+    elif units == "lb" or units == "lbs":
+        units = "LB"
+    elif units == "each":
+        units = "EA"
+    elif units == "ct":
+        units = "CT"
+    elif units == "floz":
+        units = "FLOZ"
+    elif units == "sqft":
+        units = "SQFT"
+    elif units == "yd":
+        units = "YD"
+    return units
