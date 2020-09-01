@@ -85,7 +85,7 @@ class GroceriesPipeline(object):
             #TODO break this into multiple lines
             sql = f" INSERT INTO groceryTable (name, category, section, subsection, price, unit, ounces, reported_price_per_unit, brand, date, store_id, url) VALUES (\"{name}\",\"{category}\",\"{section}\",\"{subsection}\",{price},'{unit}',{ounces},\"{reported_price_per_unit}\",\"{brand}\",\"{date}\",{store_id},\" {url} \");"
 
-            #print ( "adding sql : "+ sql )
+            print ( "adding sql : "+ sql )
             self.cursor.execute(sql)
             self.conn.commit()
             return item

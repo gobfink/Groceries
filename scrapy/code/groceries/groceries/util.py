@@ -106,12 +106,14 @@ def convert_to_ounces(weight):
     weight=weight.lower()
     if (weight.find("ounce") != -1):
         ret = weight.replace('ounce', '')
-    elif (weight.find("oz")):
+    elif (weight.find("oz.") != -1):
+        ret = weight.replace("oz.",'')
+    elif (weight.find("oz") != -1):
         ret = weight.replace("oz",'')
     elif (weight.find("lb.") != -1):
         ret = weight.replace('lb.', '')
         ret = float(ret) * 16
-    elif (weight.find("lbs.")):
+    elif (weight.find("lbs.") != -1):
         ret = weight.replace('lbs.','')
         ret = float(ret) * 16
     else:
@@ -261,7 +263,9 @@ def get_next_pagination(page_string, url):
     return next_page_url
 
 def convert_units(units):
+    units=units.lower()
     units = clean_string(units,['.',' '])
+    print (f"convert_units - {units}")
     if units == "ounce" or units == "oz":
         units = "OZ"
     elif units == "lb" or units == "lbs":
@@ -277,3 +281,8 @@ def convert_units(units):
     elif units == "yd":
         units = "YD"
     return units
+
+def trim_url(url,string_to_trim):
+    if url.endswith(string_to_trim):
+        url = url.replace(string_to_trim,'')
+    return url

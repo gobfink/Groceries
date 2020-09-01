@@ -62,7 +62,7 @@ services:
        context: scrapy/
        dockerfile: Dockerfile.selenium.runtime
        shm_size: '3gb'
-     hostname: wegmans-scrapy
+     hostname: safeway-scrapy
      environment: 
         - "PYTHONPATH=/code/groceries/groceries"
      depends_on:

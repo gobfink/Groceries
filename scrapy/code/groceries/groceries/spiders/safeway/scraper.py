@@ -13,7 +13,7 @@ import time
 #TODO change to selenium so that we can update the location!!!
 import re
 
-from util import read_script, convert_cents, store_url, get_next_url, get_url_metadata, lookup_category, finish_url, get_next_pagination
+from util import read_script, convert_cents, store_url, get_next_url, get_url_metadata, lookup_category, finish_url, get_next_pagination, trim_url, convert_to_ounces, convert_units, clean_string
 
 def convert_ppu(incoming_ppu):
     if not incoming_ppu:
@@ -146,50 +146,33 @@ class safewayScraper(scrapy.Spider):
             print (f'load-more-button. storing - {next_page_url}, section - {section}, subsection - {subsection}, category - {category}')
             store_url(self.conn,next_page_url,self.store_id,category,section,subsection)
 
-    def scrape(self,response):
-        url = response.url
-        print (f"inside scrape for {url}")
-        inspect_response(response,self)
-        items = response.css('product-item-v2')
-        metadata=get_url_metadata(self.cursor,url)
-        section=metadata[1]
-        subsection=metadata[2]
-        for item in items:
-            name = item.css('.product-title ::text').get()
-            price = item.css('.product-price ::text').get()
-            ppu = item.css('.product-price-qty ::text').get()
-            ounces = self.collect_ounces(name)
-            unit = self.collect_units(name)
-            yield{
-              "name": name,
-              "price": price,
-              "ounces": ounces,
-              "unit": unit,
-              "price-per-unit": ppu,
-              "url": url,
-              "section": section,
-              "subsection": subsection
-            }
-
     def parse(self, response):
-        this_url = response.url
+        page_1_str=self.page_str+"1"
+        this_url = trim_url(response.url,page_1_str)
         print (f"inside parse for {this_url}")
         self.scrape_urls(response)
 
         # Only scrape pages that have the page_str in the url.
         if this_url.find(self.page_str) != -1:
             print (f"scraping for {this_url}")
-            #inspect_response(response,self)
             items = response.css('product-item-v2')
+            print(f"length of items - {len(items)}")
             metadata=get_url_metadata(self.cursor,this_url)
             section=metadata[1]
             subsection=metadata[2]
             for item in items:
                 name = item.css('.product-title ::text').get()
-                price = item.css('.product-price ::text').get()
+                price_strings = item.css('.product-price ::text').getall()
+                price = clean_string(price_strings[-1],['$'])
                 ppu = item.css('.product-price-qty ::text').get()
-                ounces = self.collect_ounces(name)
                 unit = self.collect_units(name)
+                #inspect_response(response,self)
+
+                if unit == "OZ" or unit == "LB":
+                    ounces = self.collect_ounces(name)
+                else:
+                    ounces = 0
+                print (f"yielding - {name}, {price}, {ppu}, {ounces}, {unit}")
                 yield{
                   "name": name,
                   "price": price,
@@ -201,46 +184,72 @@ class safewayScraper(scrapy.Spider):
                   "subsection": subsection
                 }
 
-        page_1_str=self.page_str+"1"
-        if this_url.endswith(page_1_str):
-            non_redirected_url = this_url.replace(page_1_str,'')
-            this_url = non_redirected_url
+        #Basically the website redirects us to the url and page_1_str, which isn't added to our database
+        # So we trim that off so we can get the url in our database
         finish_url(self.conn,self.store_id,this_url)
         print("finishing url - " + this_url)
         next_url = get_next_url(self.cursor, 1)
-        if next_url is not None:
-            print("got next_url - " +next_url)
-            next_request = create_parse_request(next_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
-            yield next_request
-        else:
+        if next_url is None:
             print ("Next url is none therefore we must be finished ! ")
+            return
+        elif next_url.find(self.page_str) != -1:
+            print('next-url has page string')
+            next_request = create_parse_request(next_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'.add-product [role="button"]')))     
+        else:
+            next_request = create_parse_request(next_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
+            #next_request = create_parse_request(next_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'.product-title')))     
+        print("got next_url - " +next_url)
+        yield next_request
     
-    def collect_ounces(string):
-        split = string.split('-')
+    def collect_ounces(self,string):
+        split = string.split(' - ')
         ounces = 0
 
         if len(split) == 1:
             print (f"No -'s found in {string} - not updating ounces")
         elif len(split) == 2:
+            #FIXME Sometimes they don't uses spaces between quantity and weight
             weight = split[1]
             ounces = convert_to_ounces(weight)
         elif len(split) == 3:
             quantity = split[1]
             weight = split[2]
+            quantity = clean_string(quantity,["Count"])
             ounces = convert_to_ounces(weight) * int(quantity)
         else:
             print(f"Collect_ounces too many '-'s in string {string}")
             ounces = 0
         return ounces
-    def collect_units(string):
-        hyp_split = string.split('-')
-        if len(hyp_split) < 2 :
+    def collect_units(self,string):
+        #Assuming the form `Name - <amount> <units>`
+        ## i.e. Signature Care Hand Soap Clear Moisturizing - 7.5 Fl. Oz. 
+        #Also has the form `Name - <quantity>-<amount> <units>`
+        ## i.e. SPF 50 - 2-9.1 Oz 
+        #print (f"Working on string - {string}")
+        split_off_name = string.split(' - ')
+        if len(split_off_name) < 2 :
             print(f"unable to collect units from {string}")
             return ""
-        unit_section = hyp_split[-1]
-        space_split = unit_section.split(' ')
-        #should always be the second entry (when it follows the )
-        unit = space_split[1].lower()
-        unit = convert_units(unit)
-        return unit
+        unit_section = split_off_name[-1]
+        #print(f"unit-section - {unit_section}")
+        quantity=1
+        if unit_section.find('-') != -1:
+            # If theirs still a hyphen then we have a quantity to parse off first
+            quantity_split = unit_section.split('-')
+            quantity = int(quantity_split[0])
+            unit_section = quantity_split[-1]
 
+        #Now we should be in the form X.X Units
+        decimal_regex = "([\d]+[.]?[\d]*|[.\d]+)"
+        complete_regex = decimal_regex+"(.*)"
+        decimal_broken = re.findall(complete_regex,unit_section)
+        #print(f"collect_units, quantity - {quantity}, decimal - {decimal_broken}")
+        if len(decimal_broken) is 0:
+            # if its in the Name - EA form 
+            # Just Use the EA as the units
+            decimal_broken = unit_section
+        elif type(decimal_broken[0]) is tuple:
+            decimal_broken=list(decimal_broken[0])
+        unit = convert_units(decimal_broken[-1])
+
+        return unit
