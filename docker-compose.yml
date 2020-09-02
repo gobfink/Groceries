@@ -61,7 +61,7 @@ services:
      build: 
        context: scrapy/
        dockerfile: Dockerfile.selenium.runtime
-       shm_size: '3gb'
+       shm_size: '4gb'
      hostname: safeway-scrapy
      environment: 
         - "PYTHONPATH=/code/groceries/groceries"
