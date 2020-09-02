@@ -213,9 +213,13 @@ class safewayScraper(scrapy.Spider):
             ounces = convert_to_ounces(weight)
         elif len(split) == 3:
             quantity = split[1]
-            weight = split[2]
+            weight = convert_to_ounces(split[2])
             quantity = clean_string(quantity,["Count"])
-            ounces = convert_to_ounces(weight) * int(quantity)
+            if quantity.isdigit():
+                quantity=int(quantity)
+            else:
+                quantity=1
+            ounces = weight * quantity
         else:
             print(f"Collect_ounces too many '-'s in string {string}")
             ounces = 0
@@ -236,7 +240,8 @@ class safewayScraper(scrapy.Spider):
         if unit_section.find('-') != -1:
             # If theirs still a hyphen then we have a quantity to parse off first
             quantity_split = unit_section.split('-')
-            quantity = int(quantity_split[0])
+            if quantity_split[0].isdigit():
+                quantity = int(quantity_split[0])
             unit_section = quantity_split[-1]
 
         #Now we should be in the form X.X Units
@@ -244,7 +249,7 @@ class safewayScraper(scrapy.Spider):
         complete_regex = decimal_regex+"(.*)"
         decimal_broken = re.findall(complete_regex,unit_section)
         #print(f"collect_units, quantity - {quantity}, decimal - {decimal_broken}")
-        if len(decimal_broken) is 0:
+        if len(decimal_broken) == 0:
             # if its in the Name - EA form 
             # Just Use the EA as the units
             decimal_broken = unit_section
