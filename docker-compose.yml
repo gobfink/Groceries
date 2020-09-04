@@ -55,6 +55,7 @@ services:
      - backend
      entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
      working_dir: /code/groceries/groceries/spiders/wegmans
+     restart: unless-stopped
   safeway:
      volumes:
      - ./scrapy/code:/code
@@ -90,6 +91,7 @@ services:
     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
     environment:
       PYTHONPATH: /code/groceries/groceries/
+    restart: unless-stopped
   walmart:
     volumes:
     - ./scrapy/code:/code
@@ -107,6 +109,7 @@ services:
     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
     environment:
       PYTHONPATH: /code/groceries/groceries/
+    restart: unless-stopped
   db:
     hostname: db
     image: mysql
