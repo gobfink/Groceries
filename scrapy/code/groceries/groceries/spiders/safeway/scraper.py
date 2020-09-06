@@ -99,14 +99,21 @@ class safewayScraper(scrapy.Spider):
     def check_location(self, response):
         self.driver=response.request.meta['driver']
         current_location = self.driver.find_element_by_css_selector('.reserve-nav__current-instore-text').text
-        print(f"current_location = {current_location}")
+        print(f"current_location = {current_location} and it should be {self.location}")
         if current_location != self.location:
             print ("changing location")
             self.change_location()
         else:
             print(f"current location is already {current_location} == {self.location}")
 
-        scrape_request = create_unfiltered_parse_request(self.start_urls[0],self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
+        #scrape_request = create_unfiltered_parse_request(self.start_urls[0],self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
+        #Now that we've checked the location now lets pass it to the parsing section
+        if response.url.find(self.page_str) != -1:
+            print(f'{response.url} has page string')
+            scrape_request = create_unfiltered_parse_request(response.url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'.add-product [role="button"]')))     
+        else:
+            scrape_request = create_unfiltered_parse_request(response.url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
+   
         yield scrape_request
 
     def scrape_urls(self,response):
@@ -192,11 +199,11 @@ class safewayScraper(scrapy.Spider):
         if next_url is None:
             print ("Next url is none therefore we must be finished ! ")
             return
-        elif next_url.find(self.page_str) != -1:
-            print('next-url has page string')
-            next_request = create_parse_request(next_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'.add-product [role="button"]')))     
+        #elif next_url.find(self.page_str) != -1:
+        #    print('next-url has page string')
+        #    next_request = create_parse_request(next_url,self.check_location,EC.element_to_be_clickable((By.CSS_SELECTOR,'.add-product [role="button"]')))     
         else:
-            next_request = create_parse_request(next_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
+            next_request = create_parse_request(next_url,self.check_location,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
             #next_request = create_parse_request(next_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'.product-title')))     
         print("got next_url - " +next_url)
         yield next_request
