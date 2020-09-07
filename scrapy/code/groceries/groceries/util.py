@@ -115,7 +115,11 @@ def convert_to_ounces(weight):
         ret = float(ret) * 16
     elif (weight.find("lbs.") != -1):
         ret = weight.replace('lbs.','')
-        ret = float(ret) * 16
+        if ret.isdigit():
+            ret = float(ret) * 16
+        else:
+            print(f"convert_to_ounces - {ret} - is not a digit")
+            ret = 0
     else:
         print("convert_to_ounces - unsupported weight of: " + weight)
 
