@@ -10,48 +10,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from seleniumHelpers import create_parse_request, create_unfiltered_parse_request
 import time
-#TODO change to selenium so that we can update the location!!!
 import re
 
-from util import read_script, convert_cents, store_url, get_next_url, get_url_metadata, lookup_category, finish_url, get_next_pagination, trim_url, convert_to_ounces, convert_units, clean_string
-
-def convert_ppu(incoming_ppu):
-    if not incoming_ppu:
-        return ""
-    ppu = incoming_ppu
-    charactersToRemove = ['$', ' ']
-    for remove in charactersToRemove:
-        ppu = ppu.replace(remove,'')
-    if ppu.find('per') != -1:
-        ppuSplit = ppu.split('per')
-    elif ppu.find('each') != -1:
-        # Split off the each, and add it on manually
-        ppuSplit = ppu.split('each')
-        print ("ppu - " + ppu + ", ppuSplit - " + str(ppuSplit))
-        # Add 'each' as the units to be set appropriately
-        ppuSplit[1] = 'ea'
-
-    cost = ppuSplit[0]
-        # if theirs a / seperating multiple values
-    if cost.find('/'):
-        temp_cost = ""
-        costs = cost.split('/')
-        for c in costs:
-            c = convert_cents(c)
-            # If its the first value
-            if temp_cost == "":
-                temp_cost = c
-            else:
-                temp_cost = temp_cost + ", " + c
-            cost = temp_cost
-        else:
-            cost = convert_cents(cost)
-
-    units = ppuSplit[1]
-    units = units.replace('.','')
-    units = units.upper()
-    ppu = cost +" / "+units
-    return ppu
+from util import (read_script, store_url, get_next_url,
+                  get_url_metadata, lookup_category, finish_url, get_next_pagination,
+                  trim_url, convert_to_ounces, convert_units, clean_string)
 
 class safewayScraper(scrapy.Spider):
     name = "safeway_spider"
@@ -59,7 +22,6 @@ class safewayScraper(scrapy.Spider):
     start_urls = ["https://www.safeway.com/shop/aisles.1431.html"]
     base_url = "https://www.safeway.com"
 
-    #expand_and_scroll_lua = read_script("prepareForScraping.lua")
     section_dict = {}
     urls = []
     processedUrls = []
@@ -67,18 +29,25 @@ class safewayScraper(scrapy.Spider):
     zipcode = "20136"
     page_str="?sort=&page="
 
+
+    # @description the start function for the scraper. Kicks off the scraping
     def start_requests(self):
-        #print ("lua script - " + self.expand_and_scroll_lua)
-        #wait_until=EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton'))
-        location_request = create_parse_request(self.start_urls[0],self.check_location,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
+
+        location_request = create_parse_request(self.start_urls[0],
+                                                self.check_location,
+                                                EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
         yield location_request
 
-    def change_location(self):
+    # @description changes the locaion of the webpage. 
+    # @TODO if it doesn't find the location it will just hang
+    # @param zipcode - string : zipcode of the location to change to 
+    # @param location - string : address of the location of the store to change to
+    def change_location(self, zipcode, location):
         print(f"changing location to {self.location}")
         change_button = self.driver.find_element_by_css_selector('#openFulfillmentModalButton')
         change_button.click()
         zip_input = self.driver.find_element_by_css_selector('[aria-labelledby="zipcode"]')
-        zip_input.send_keys(self.zipcode)
+        zip_input.send_keys(zipcode)
         zip_input.send_keys(Keys.RETURN)
         time.sleep(2)
         stores = self.driver.find_elements_by_css_selector('.card-store')
@@ -86,38 +55,43 @@ class safewayScraper(scrapy.Spider):
         for store in stores:
             caption = store.find_element_by_css_selector('.caption').text
             print (f"store - {store}, {caption}")
-            if self.location in caption:
-                print (f"found {self.location} in {caption}")
+            if location in caption:
+                print (f"found {location} in {caption}")
                 button = store.find_element_by_css_selector('[role="button"]')
                 button.click()
                 time.sleep(5)
                 break
-
-        #yield self.location_request
-
-
+    # @decription checks the location on the website and compares it with that on the scraper
+    #             if its the same it continues, if not it will call change_location to change it
+    # @called is a callback via a yield function
+    # @calls parse
+    # @param response - html response of the webpage
     def check_location(self, response):
         self.driver=response.request.meta['driver']
         current_location = self.driver.find_element_by_css_selector('.reserve-nav__current-instore-text').text
         print(f"current_location = {current_location} and it should be {self.location}")
         if current_location != self.location:
             print ("changing location")
-            self.change_location()
+            self.change_location(self.zipcode,self.location)
         else:
             print(f"current location is already {current_location} == {self.location}")
 
-        #scrape_request = create_unfiltered_parse_request(self.start_urls[0],self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
         #Now that we've checked the location now lets pass it to the parsing section
         if response.url.find(self.page_str) != -1:
             print(f'{response.url} has page string')
-            scrape_request = create_unfiltered_parse_request(response.url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'.add-product [role="button"]')))     
+            scrape_request = create_unfiltered_parse_request(response.url,
+                                                             self.parse,
+                                                             EC.element_to_be_clickable((By.CSS_SELECTOR,'.add-product [role="button"]')))     
         else:
-            scrape_request = create_unfiltered_parse_request(response.url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
+            scrape_request = create_unfiltered_parse_request(response.url,
+                                                             self.parse,
+                                                             EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
    
         yield scrape_request
 
+    # @description scrapes the urls from the response and stores in the database
+    # @param response - html response of the webpage
     def scrape_urls(self,response):
-        #view_alls = response.css('.text-uppercase.view-all-subcats ::attr(href)').getall()
         mainGroups = response.css('.col-12.col-sm-12.col-md-4.col-lg-4.col-xl-3')
         #TODO can probably infer some categories from location
         for mainGroup in mainGroups:
@@ -152,7 +126,8 @@ class safewayScraper(scrapy.Spider):
             next_page_url=get_next_pagination(self.page_str,response.url)
             print (f'load-more-button. storing - {next_page_url}, section - {section}, subsection - {subsection}, category - {category}')
             store_url(self.conn,next_page_url,self.store_id,category,section,subsection)
-
+    # @description first scrapes the urls, then goes through and parses the groceries from the webpage
+    # @param response - html response of the webpage
     def parse(self, response):
         page_1_str=self.page_str+"1"
         this_url = trim_url(response.url,page_1_str)
@@ -199,23 +174,23 @@ class safewayScraper(scrapy.Spider):
         if next_url is None:
             print ("Next url is none therefore we must be finished ! ")
             return
-        #elif next_url.find(self.page_str) != -1:
-        #    print('next-url has page string')
-        #    next_request = create_parse_request(next_url,self.check_location,EC.element_to_be_clickable((By.CSS_SELECTOR,'.add-product [role="button"]')))     
         else:
-            next_request = create_parse_request(next_url,self.check_location,EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
-            #next_request = create_parse_request(next_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,'.product-title')))     
-        print("got next_url - " +next_url)
+            next_request = create_parse_request(next_url,
+                                                self.check_location,
+                                                EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
+        print(f"got next_url - {next_url}")
         yield next_request
     
+    # @description collects and returns the ounces from the grocery
+    # @param string - string to collect the ounces from
+    # @returns 0 if no ounces could be detected - else returns the ounces 
     def collect_ounces(self,string):
         split = string.split(' - ')
         ounces = 0
-
+        
         if len(split) == 1:
             print (f"No -'s found in {string} - not updating ounces")
         elif len(split) == 2:
-            #FIXME Sometimes they don't uses spaces between quantity and weight
             weight = split[1]
             ounces = convert_to_ounces(weight)
         elif len(split) == 3:
@@ -229,8 +204,11 @@ class safewayScraper(scrapy.Spider):
             ounces = weight * quantity
         else:
             print(f"Collect_ounces too many '-'s in string {string}")
-            ounces = 0
         return ounces
+
+    # @description collects the units from the grocery
+    # @param string - string to collect the units from
+    # @returns - empty string if it can't find units. Else returns the units from the string
     def collect_units(self,string):
         #Assuming the form `Name - <amount> <units>`
         ## i.e. Signature Care Hand Soap Clear Moisturizing - 7.5 Fl. Oz. 

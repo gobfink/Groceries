@@ -1,7 +1,11 @@
 import datetime
 import MySQLdb
 
-
+# @description returns the category based on the name, section, and subsection
+# @param string name - name to return the category for
+# @param string section - section used to determine the category
+# @param string subsection - subsection used to determine the category
+# @param string ret - the category determined from the name, section, and subsection
 def lookup_category(name, section, subsection):
     categories = {
         #"Category name" : "search terms"
@@ -57,28 +61,13 @@ def lookup_category(name, section, subsection):
             #print(f" found and matched- {sections_and_name} with terms - {terms} for category {category}")
             ret = category
             break
-        """
-        if not any(term in subsection
-                   for term in exclusion) and any(term in subsection
-                                                  for term in terms):
-            ret = category
-            break
-        elif not any(term in section
-                     for term in exclusion) and any(term in section
-                                                    for term in terms):
-            ret = category
-            break
-        elif not any(term in name
-                     for term in exclusion) and any(term in name
-                                                    for term in terms):
-            ret = category
-            break
-        """
     return ret
 
 
 
-
+# @description converts the price per unit to something generic that can be compared
+# @param string - incoming_ppu used to derive the ppu from
+# @returns string - ppu that can be used to compare between different stores
 def convert_ppu(incoming_ppu):
     if incoming_ppu is None:
         return ""
@@ -97,7 +86,9 @@ def convert_ppu(incoming_ppu):
     return ppu
 
 
-
+# @description converts the weigh to ounces
+# @param weight - weight to convert to ounces
+# @returns float ret - ounces derived from the weight, or 0 if ounces couldn't be derived
 def convert_to_ounces(weight):
     if weight is None:
         return weight
@@ -105,11 +96,11 @@ def convert_to_ounces(weight):
     weight.replace(' ', '')
     weight=weight.lower()
     if (weight.find("ounce") != -1):
-        ret = weight.replace('ounce', '')
+        ret = float(weight.replace('ounce', ''))
     elif (weight.find("oz.") != -1):
-        ret = weight.replace("oz.",'')
+        ret = float(weight.replace("oz.",''))
     elif (weight.find("oz") != -1):
-        ret = weight.replace("oz",'')
+        ret = float(weight.replace("oz",''))
     elif (weight.find("lb.") != -1):
         ret = weight.replace('lb.', '')
         ret = float(ret) * 16
@@ -125,7 +116,9 @@ def convert_to_ounces(weight):
 
     return ret
 
-
+# @decription - removes $ from price 
+# @param string price - string of the form $XX.XX to XX.XX 
+# @returns string p - price without $ or 0 if None
 def convert_dollars(price):
     if price is None:
         return 0
@@ -133,7 +126,9 @@ def convert_dollars(price):
     p = p.replace('$', '')
     return p
 
-
+# @description - converts cents to dollars
+# @param string price to convert to dollars
+# @returns string price in dollars
 def convert_cents(price):
     p = price
     if price.find('¢') != -1:
@@ -142,21 +137,27 @@ def convert_cents(price):
         p = "0." + p
     return p
 
-
+# @description checks if arg is None and replaces with 0 if it is
+# @param string or None arg to be handled the None condition
+# @returns 0 if it was None else the same argument
 def handle_none(arg):
     if arg is None:
         return 0
     else:
         return arg
 
-
+# @description reads a file into a string
+# @param string script_file - location to read
+# @returns string script - contents of the script to read
 def read_script(script_file):
     file = open(script_file)
     script = file.read()
     file.close()
     return script
 
-
+# @description checks if float_in can be a float
+# @param string float_in - to be checked if it can be a float
+# @returns float f - 0 if it raised a ValueError else float(float_in)
 def parse_float(float_in):
     try:
         f = float(float_in)
@@ -165,20 +166,19 @@ def parse_float(float_in):
         f = 0
     return f
 
-
-def read_script(script_file):
-    file = open(script_file)
-    script = file.read()
-    file.close()
-    return script
-
-
+# @description removes list_to_clean from string
+# @param string string - string to be cleaned
+# @param list[strings] list_to_clean - list to remove from string
+# @returns string string - string without any strings in list_to_clean
 def clean_string(string, list_to_clean):
     for item in list_to_clean:
         string = string.replace(item, "")
     return string
 
-
+# @description gets the category, section, subsection assocataited withh the url
+# @param MySQLDb.cursor - cursor used to fetch the data from the connection
+# @param string url - url to get metadata from
+# @returns (string,string,string) - category,section,subsection found in urlTable for url
 def get_url_metadata(cursor, url):
     sql = f"SELECT category, section, subsection FROM urlTable WHERE url=\"{url}\""
     print(f'get_url_metadata - {sql}')
@@ -186,7 +186,10 @@ def get_url_metadata(cursor, url):
     metadata = cursor.fetchone()
     return (metadata)
 
-
+# @description gets the next url in the database offset by iteration
+# @param MySQLDb.cursor - cursor used to fetch the data from the connection
+# @param int iteration - iteration used to offset from the table
+# @returns string url - next url found in the database pointed to by cursor
 def get_next_url(cursor, iteration):
     sql = f"SELECT url from urlTable WHERE scraped=0 ORDER BY updated DESC LIMIT {iteration}"
     cursor.execute(sql)
@@ -198,7 +201,13 @@ def get_next_url(cursor, iteration):
         url = url[0]
     return url
 
-
+# @description stores the url for the associated store_id, category, section, and subsection
+# @param MySQLDb.conn - connection to the database
+# @param string url - url to store in the database
+# @param int store_id - id of the store refered to
+# @param string category - category of the store the url refers to 
+# @param string section - section of the store the url refers to 
+# @param string subsection - subsection of the store the url refers to
 def store_url(conn, url, store_id, category, section, subsection):
     time = datetime.datetime.now()
     #url=url.replace("\'","\'\'")
@@ -220,6 +229,11 @@ def store_url(conn, url, store_id, category, section, subsection):
         conn.commit()
 
 
+# @description sets scraped=1 for url
+# @param MySQLDb.connection - connection used to fetch/store the data from the database
+# @param int store_id - store_id associated with the url to update
+# @param string url - url to update
+# @returns string url - url updated
 def finish_url(conn, store_id, url):
     url_update = f" UPDATE urlTable SET scraped=1 WHERE url=\"{url}\" AND store_id='{store_id}'"
     cursor = conn.cursor()
@@ -228,29 +242,31 @@ def finish_url(conn, store_id, url):
     conn.commit()
     return url
 
-
+# @description finds the corresponding store_id for store_name and location
+# @param MySQLDb.cursor - cursor used to fetch the data from the connection
+# @param string store_name - store_name used to find the store_id for
+# @param string location - address of the store to find the store_id for
+# @returns int store_id 
 def find_store_id(cursor, store_name, location):
     store_query = f"SELECT id FROM storeTable where name='{store_name}' AND location='{location}'"
     cursor.execute(store_query)
     store_id = cursor.fetchone()[0]
     return store_id
 
-
+# @description updates the location for a given store_id
+# @param MySQLDb.connection - connection used to fetch/store the data from the database
+# @param string location - address of the store to find the store_id for
+# @param int store_id - store_id of the store to update the location for
 def update_location_db(conn, location, store_id):
     cursor = conn.cursor()
     store_update = f"UPDATE storeTable SET location=\"{location}\" WHERE id=\"{store_id}\""
     cursor.execute(store_update)
     conn.commit()
 
-
-"""
-This function determines if the page supports pagination
-@Params page_string - the string that is added to the url for the next page
-@Params url - the url for the current page
-@returns the url of the next page or None if it doesn't support it
-"""
-
-
+# @description This function determines if the page supports pagination
+# @Params string page_string - the string that is added to the url for the next page
+# @Params string url - the url for the current page
+# @returns string url of the next page or None if it doesn't support it
 def get_next_pagination(page_string, url):
     page_str_len = len(page_string)
     i = url.find(page_string)
@@ -266,6 +282,9 @@ def get_next_pagination(page_string, url):
         next_page_url = url[:page_number] + str(next_page)
     return next_page_url
 
+# @description converts the units into a generic set of units used between spiders
+# @Params string units - units to be converted and made generic
+# @returns string units generified units 
 def convert_units(units):
     units=units.lower()
     units = clean_string(units,['.',' '])
@@ -286,7 +305,11 @@ def convert_units(units):
         units = "YD"
     return units
 
-def trim_url(url,string_to_trim):
-    if url.endswith(string_to_trim):
-        url = url.replace(string_to_trim,'')
-    return url
+# @description trimgs a string from the end
+# @param string trim_from - string to trim from  
+# @param string_to_trim - string to remove
+# @returns string - trimmed string
+def trim_url(trim_from,string_to_trim):
+    if trim_from.endswith(string_to_trim):
+        trim_from = trim_from.replace(string_to_trim,'')
+    return trim_from
