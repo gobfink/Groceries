@@ -3,6 +3,7 @@ services:
   splash-middleware:
      hostname: splash-middleware
      image: scrapinghub/splash
+     command: --disable-private-mode
      ports:
      - "5023:5023"
      - "8050:8050"
@@ -36,7 +37,7 @@ services:
      - backend
      entrypoint:
      - "/bin/bash"
-     working_dir: /code/groceries/groceries/spiders/wegmans
+     working_dir: /code/groceries/groceries/spiders/safeway
   wegmans:
      volumes:
      - ./scrapy/code:/code
@@ -54,6 +55,25 @@ services:
      - backend
      entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
      working_dir: /code/groceries/groceries/spiders/wegmans
+     restart: unless-stopped
+  safeway:
+     volumes:
+     - ./scrapy/code:/code
+     build: 
+       context: scrapy/
+       dockerfile: Dockerfile.selenium.runtime
+       shm_size: '4gb'
+     hostname: safeway-scrapy
+     environment: 
+        - "PYTHONPATH=/code/groceries/groceries"
+     depends_on:
+     -  db
+     -  adminer
+     networks:
+     - backend
+     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+     working_dir: /code/groceries/groceries/spiders/safeway
+     restart: unless-stopped
   lidl:
     volumes:
     - ./scrapy/code:/code
@@ -71,6 +91,7 @@ services:
     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
     environment:
       PYTHONPATH: /code/groceries/groceries/
+    restart: unless-stopped
   walmart:
     volumes:
     - ./scrapy/code:/code
@@ -88,6 +109,7 @@ services:
     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
     environment:
       PYTHONPATH: /code/groceries/groceries/
+    restart: unless-stopped
   db:
     hostname: db
     image: mysql
