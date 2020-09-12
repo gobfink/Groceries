@@ -24,11 +24,11 @@ services:
      build: 
        context: scrapy/
        dockerfile: Dockerfile.debug
-       shm_size: '3gb'
+       shm_size: '4gb'
      hostname: scrapy
      environment: 
         - "DISPLAY"
-        - "PYTHONPATH=/code/groceries/groceries"
+        - "PYTHONPATH=/code/groceries"
      depends_on:
      -  splash-middleware
      -  db
@@ -37,7 +37,7 @@ services:
      - backend
      entrypoint:
      - "/bin/bash"
-     working_dir: /code/groceries/groceries/spiders/safeway
+     working_dir: /code/groceries/spiders/safeway
   wegmans:
      volumes:
      - ./scrapy/code:/code
