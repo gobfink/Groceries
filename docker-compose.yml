@@ -47,14 +47,14 @@ services:
        shm_size: '3gb'
      hostname: wegmans-scrapy
      environment: 
-        - "PYTHONPATH=/code/groceries/groceries"
+        - "PYTHONPATH=/code/groceries"
      depends_on:
      -  db
      -  adminer
      networks:
      - backend
      entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
-     working_dir: /code/groceries/groceries/spiders/wegmans
+     working_dir: /code/groceries/spiders/wegmans
      restart: unless-stopped
   safeway:
      volumes:
@@ -65,14 +65,14 @@ services:
        shm_size: '4gb'
      hostname: safeway-scrapy
      environment: 
-        - "PYTHONPATH=/code/groceries/groceries"
+        - "PYTHONPATH=/code/groceries"
      depends_on:
      -  db
      -  adminer
      networks:
      - backend
      entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
-     working_dir: /code/groceries/groceries/spiders/safeway
+     working_dir: /code/groceries/spiders/safeway
      restart: unless-stopped
   lidl:
     volumes:
@@ -87,10 +87,10 @@ services:
     - adminer
     networks:
     - backend
-    working_dir: /code/groceries/groceries/spiders/lidl
+    working_dir: /code/groceries/spiders/lidl
     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
     environment:
-      PYTHONPATH: /code/groceries/groceries/
+      PYTHONPATH: /code/groceries/
     restart: unless-stopped
   walmart:
     volumes:
@@ -105,10 +105,10 @@ services:
     - adminer
     networks:
     - backend
-    working_dir: /code/groceries/groceries/spiders/walmart
+    working_dir: /code/groceries/spiders/walmart
     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
     environment:
-      PYTHONPATH: /code/groceries/groceries/
+      PYTHONPATH: /code/groceries/
     restart: unless-stopped
   db:
     hostname: db
