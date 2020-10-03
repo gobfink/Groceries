@@ -253,6 +253,17 @@ def find_store_id(cursor, store_name, location):
     store_id = cursor.fetchone()[0]
     return store_id
 
+# @description determines if the seciton is in the store_id
+# @param MySQLDb.cursor - cursor used to fetch the data from the connection
+# @param int store_id store_id to look in
+# @param string section the section to look for inside of the store_id
+# @returns true if it finds a match else false
+def is_section_in_store_id(cursor, store_id, section):
+    section_query = f"SELECT * FROM urlTable where store_id='{store_id}' AND section='{section}'"
+    cursor.execute(section_query)
+    ret = cursor.fetchone() is not None
+    return ret
+
 # @description updates the location for a given store_id
 # @param MySQLDb.connection - connection used to fetch/store the data from the database
 # @param string location - address of the store to find the store_id for
@@ -313,3 +324,4 @@ def trim_url(trim_from,string_to_trim):
     if trim_from.endswith(string_to_trim):
         trim_from = trim_from.replace(string_to_trim,'')
     return trim_from
+

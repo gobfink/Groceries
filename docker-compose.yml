@@ -37,7 +37,7 @@ services:
      - backend
      entrypoint:
      - "/bin/bash"
-     working_dir: /code/groceries/spiders/safeway
+     working_dir: /code/groceries/spiders/harris-teeter
   wegmans:
      volumes:
      - ./scrapy/code:/code
