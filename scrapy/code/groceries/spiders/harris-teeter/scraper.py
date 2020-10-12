@@ -192,6 +192,9 @@ class safewayScraper(scrapy.Spider):
                 #print(f"Not in submenu for {subsection_text}")
                 current_url = self.driver.current_url
                 category = lookup_category("",section,subsection_text)
+                num_groceries = self.get_quantity()
+                if num_groceries is not None:
+                    subsection_text += f" ({num_groceries})"
                 self.walk_through_pages(section,subsection_text)
                 store_url(self.conn,current_url,self.store_id,category,section,subsection_text)
             #inspect_response(response,self)
@@ -243,6 +246,9 @@ class safewayScraper(scrapy.Spider):
             #print (f"subsection_text - {subsection_text}")
             current_url = self.driver.current_url
             category = lookup_category("",section,subsection_text)
+            num_groceries = self.get_quantity()
+            if num_groceries is not None:
+                subsection_text += f" ({num_groceries})"
             #We'll need to handle the pagination here, because we don't revisit this spot
             self.walk_through_pages(section,subsection_text)
             store_url(self.conn,current_url,self.store_id,category,section,subsection_text)
@@ -293,6 +299,22 @@ class safewayScraper(scrapy.Spider):
         #Unfortunately we want to recurse until their is no more pages to walk through
         self.walk_through_pages(section,subsection)
 
+
+    # @description returns the quanity of items in a subsection or None if it can't detect it
+    # @returns int quantity - quantity of items for the subsection
+    def get_quantity(self):
+        quantity_selector = ("body > app-root > div > hts-layout > span > hts-shop-by-category > div > " 
+                            "section > div > div.product-category-list.col-lg-7.col-md-9.column7 >  "
+                            "div.smart-filter.clearfix > h2 > span")
+        try:
+            quantity = self.driver.find_element_by_css_selector(quantity_selector).text
+            quantity = clean_string(quantity,['(',')'])
+            ret = int(quantity)
+        except NoSuchElementException:
+            ret = None
+            return
+        print(f"in get_quantity - found quantity of {ret}")
+        return ret
     # @description scrapes the urls from the response and stores in the database
     # @param response - html response of the webpage
     def scrape_urls(self,response):
