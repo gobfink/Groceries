@@ -24,7 +24,7 @@ services:
      build: 
        context: scrapy/
        dockerfile: Dockerfile.debug
-       shm_size: '4gb'
+       shm_size: '8gb'
      hostname: scrapy
      environment: 
         - "DISPLAY"

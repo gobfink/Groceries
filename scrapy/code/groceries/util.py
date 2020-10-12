@@ -253,13 +253,28 @@ def find_store_id(cursor, store_name, location):
     store_id = cursor.fetchone()[0]
     return store_id
 
-# @description determines if the seciton is in the store_id
+# @description determines if the section is in the store_id
 # @param MySQLDb.cursor - cursor used to fetch the data from the connection
 # @param int store_id store_id to look in
 # @param string section the section to look for inside of the store_id
 # @returns true if it finds a match else false
 def is_section_in_store_id(cursor, store_id, section):
-    section_query = f"SELECT * FROM urlTable where store_id='{store_id}' AND section='{section}'"
+    section_query = f"SELECT * FROM urlTable where store_id='{store_id}' AND section='{section}' AND subsection=''"
+    cursor.execute(section_query)
+    ret = cursor.fetchone() is not None
+    return ret
+
+# @description determines if the subsection is in the store_id - excludes any Urls with the string pageNo
+# @param MySQLDb.cursor - cursor used to fetch the data from the connection
+# @param int store_id store_id to look in
+# @param string section the section to look for inside of the store_id
+# @param string subsection the subsection to look for inside of the store_id
+# @param string urlExclusion a string to filter out of the urls when querying the database
+# @returns true if it finds a match else false
+def is_subsection_in_store_id(cursor, store_id, section, subsection, urlExclusion = ""):
+    # Exclude the  `pageNo` string in case it was interrupeted in the middle of a crawling the pages for a section (the url without pageNo is added after)
+    section_query = f"SELECT * FROM `urlTable` where `store_id` = '{store_id}' AND `Section` = '{section}' AND `Subsection`='{subsection}' AND `Url` NOT LIKE '%pageNo%'"
+    #print(f"is_subsection_in_store_id - section_query: {section_query}")
     cursor.execute(section_query)
     ret = cursor.fetchone() is not None
     return ret
