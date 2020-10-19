@@ -208,7 +208,8 @@ def get_next_url(cursor, iteration):
 # @param string category - category of the store the url refers to 
 # @param string section - section of the store the url refers to 
 # @param string subsection - subsection of the store the url refers to
-def store_url(conn, url, store_id, category, section, subsection):
+# @param int grocery_quantity - number of groceries to expect for this url's subsection
+def store_url(conn, url, store_id, category, section, subsection, grocery_quantity=0):
     time = datetime.datetime.now()
     #url=url.replace("\'","\'\'")
     store_query = f"SELECT Hits FROM urlTable where url=\"{url}\" AND store_id='{store_id}'"
@@ -217,7 +218,8 @@ def store_url(conn, url, store_id, category, section, subsection):
     cursor.execute(store_query)
     hits = cursor.fetchone()
     if hits is None:
-        store_url_sql = f"INSERT INTO urlTable (url, store_id, scraped, Updated, category, section, subsection, hits) VALUES (\"{url}\",{store_id},0,\"{time}\",\"{category}\",\"{section}\",\"{subsection}\",1);"
+        store_url_sql = ("INSERT INTO urlTable (url, store_id, scraped, Updated, category, section, subsection, hits, grocery_quantity)"
+                         f" VALUES ('{url}',{store_id},0,'{time}','{category}','{section}','{subsection}',1,{grocery_quantity});")
         print(f"store_url_sql - {store_url_sql}")
         cursor.execute(store_url_sql)
         conn.commit()

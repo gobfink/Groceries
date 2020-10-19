@@ -86,7 +86,7 @@ CREATE TABLE `groceryTable` (
   PRIMARY KEY (`id`),
   KEY `store_id` (`store_id`),
   CONSTRAINT `groceryTable_ibfk_3` FOREIGN KEY (`store_id`) REFERENCES `storeTable` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=533497 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=536255 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -133,7 +133,7 @@ CREATE TABLE `storeTable` (
   `name` varchar(80) DEFAULT NULL,
   `location` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -142,6 +142,7 @@ CREATE TABLE `storeTable` (
 
 LOCK TABLES `storeTable` WRITE;
 /*!40000 ALTER TABLE `storeTable` DISABLE KEYS */;
+INSERT INTO `storeTable` VALUES (20,'safeway','12821 Braemar Village Plaza'),(21,'wegmans','FAIRFAX'),(22,'harris-teeter','10438 Bristow Center Dr');
 /*!40000 ALTER TABLE `storeTable` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -162,10 +163,11 @@ CREATE TABLE `urlTable` (
   `Category` varchar(50) NOT NULL,
   `Section` varchar(50) NOT NULL,
   `Subsection` varchar(50) NOT NULL,
+  `grocery_quantity` int(11) NOT NULL,
   PRIMARY KEY (`Id`),
   KEY `Store` (`store_id`),
   CONSTRAINT `urlTable_ibfk_1` FOREIGN KEY (`store_id`) REFERENCES `storeTable` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18204 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18885 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -186,4 +188,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-09-04  3:20:48
+-- Dump completed on 2020-10-12 20:13:14

@@ -137,7 +137,9 @@ class safewayScraper(scrapy.Spider):
             #While on this page we need to click on all of the subsections
             self.crawl_submenu(response,section_name)
             #inspect_response(response,self)
-            store_url(self.conn,current_url,self.store_id,category,section_name,"")
+
+            num_groceries=self.get_quantity()
+            store_url(self.conn,current_url,self.store_id,category,section_name,"",num_groceries)
             # Now we need to reset it and do it again
             menu_button.click()
             time.sleep(self.delay)
@@ -193,10 +195,8 @@ class safewayScraper(scrapy.Spider):
                 current_url = self.driver.current_url
                 category = lookup_category("",section,subsection_text)
                 num_groceries = self.get_quantity()
-                if num_groceries is not None:
-                    subsection_text += f" ({num_groceries})"
                 self.walk_through_pages(section,subsection_text)
-                store_url(self.conn,current_url,self.store_id,category,section,subsection_text)
+                store_url(self.conn,current_url,self.store_id,category,section,subsection_text,num_groceries)
             #inspect_response(response,self)
             #print (f"subsection_text - {subsection_text}")
             local_subsections=self.driver.find_elements_by_css_selector('#collapseOne > li > a')
@@ -247,16 +247,14 @@ class safewayScraper(scrapy.Spider):
             current_url = self.driver.current_url
             category = lookup_category("",section,subsection_text)
             num_groceries = self.get_quantity()
-            if num_groceries is not None:
-                subsection_text += f" ({num_groceries})"
             #We'll need to handle the pagination here, because we don't revisit this spot
             self.walk_through_pages(section,subsection_text)
-            store_url(self.conn,current_url,self.store_id,category,section,subsection_text)
+            store_url(self.conn,current_url,self.store_id,category,section,subsection_text,num_groceries)
             sections=self.driver.find_elements_by_css_selector('#collapseOne > li > a')
             next_section = self.get_next_2nd_layer_section(section,subsection,sections)
 
         #Store the section url after so we know we've completed it
-        store_url(self.conn,section_url,self.store_id,section_category,section,subsection)
+        store_url(self.conn,current_url,self.store_id,category,section_name,"",self.get_quantity())
         #We then need to click on the section header to get back outside the menu and continue on
         section_button = self.driver.find_element_by_css_selector('li.breadcrumb-item:nth-child(2) > span:nth-child(1) > a:nth-child(1)')
         section_button.click()
@@ -295,13 +293,13 @@ class safewayScraper(scrapy.Spider):
         next_arrow.click()
         time.sleep(self.delay)
         current_url = self.driver.current_url
-        store_url(self.conn,current_url,self.store_id,category,section,subsection)
+        store_url(self.conn,current_url,self.store_id,category,section,subsection,self.get_quantity())
         #Unfortunately we want to recurse until their is no more pages to walk through
         self.walk_through_pages(section,subsection)
 
 
-    # @description returns the quanity of items in a subsection or None if it can't detect it
-    # @returns int quantity - quantity of items for the subsection
+    # @description returns the quanity of items in a subsection or 0if it can't detect it
+    # @returns int quantity - quantity of items for the subsection 
     def get_quantity(self):
         quantity_selector = ("body > app-root > div > hts-layout > span > hts-shop-by-category > div > " 
                             "section > div > div.product-category-list.col-lg-7.col-md-9.column7 >  "
@@ -311,7 +309,7 @@ class safewayScraper(scrapy.Spider):
             quantity = clean_string(quantity,['(',')'])
             ret = int(quantity)
         except NoSuchElementException:
-            ret = None
+            ret = 0
             return
         print(f"in get_quantity - found quantity of {ret}")
         return ret
