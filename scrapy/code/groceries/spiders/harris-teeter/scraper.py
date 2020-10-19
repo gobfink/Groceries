@@ -108,18 +108,10 @@ class harristeeterScraper(scrapy.Spider):
 
         accept_cookies = self.driver.find_element_by_css_selector('[title="Accept Cookies"]')
         self.handle_click(accept_cookies,self.delay)
-        #accept_cookies.click()
         menu_button = self.driver.find_element_by_css_selector('.nav-open')
         self.handle_click(menu_button,self.delay)
-        #menu_button.click()
         #We then need to scrape all of the (.'category-link') and then hover over each one and scrape the hrefs that appear
         sections=self.driver.find_elements_by_css_selector('.category-link')
-        #Scraping the urls is tricky too. the href elements are all null. 
-        # What we'll do then is click on each link and then add that url to the database. 
-        # We will need a way to track our state and get the next element in the last (assuming the next element is the next one in the alphabetical list)
-        # First thing to test is if clicking on it actually works
-        #May need to change this to a while loop
-        #FIXME currently doesnt get the names for products not in focus and just uses "" as them
         next_section = self.get_next_section(sections)
         self.section_list = sections
 
@@ -128,11 +120,6 @@ class harristeeterScraper(scrapy.Spider):
             actions.move_to_element(next_section)
             section_name = next_section.get_attribute('innerText')
             print(f"using next_section: {section_name}")
-            #element = WebDriverWait(self.driver, 20).until(
-            #                        EC.element_to_be_clickable((By.CSS_SELECTOR, ".category-link")))
-            # Need to scroll down for the .sf-mega class
-            #next_section.click()
-            #time.sleep(self.delay)
             self.handle_click(next_section,self.delay)
 
             current_url = self.driver.current_url
@@ -145,8 +132,6 @@ class harristeeterScraper(scrapy.Spider):
             store_url(self.conn,current_url,self.store_id,category,section_name,"",num_groceries)
             # Now we need to reset it and do it again
             self.handle_click(menu_button,self.delay)
-            #menu_button.click()
-            #time.sleep(self.delay)
             sections=self.driver.find_elements_by_css_selector('.category-link')
             next_section = self.get_next_section(sections)
         return
@@ -179,11 +164,7 @@ class harristeeterScraper(scrapy.Spider):
         while next_subsection is not None:
             current_subsection = next_subsection
             subsection_text = current_subsection.get_attribute('innerText')
-            #element = WebDriverWait(self.driver, 20).until(
-            #                        EC.element_to_be_clickable(next_subsection))
-            #time.sleep(self.delay)
-            #current_subsection.click()
-            #time.sleep(self.delay)
+
             self.handle_click(current_subsection,self.delay)
 
             try:
@@ -243,9 +224,6 @@ class harristeeterScraper(scrapy.Spider):
             #The trick here is that for 2nd layer sections is to append the layer2 info on the subsection
             subsection_text = subsection +": "+section_text
 
-            #time.sleep(self.delay)
-            #current_section.click()
-            #time.sleep(self.delay)
             self.handle_click(current_section,self.delay)
 
 
@@ -263,8 +241,6 @@ class harristeeterScraper(scrapy.Spider):
         store_url(self.conn,current_url,self.store_id,category,section_name,"",self.get_quantity())
         #We then need to click on the section header to get back outside the menu and continue on
         section_button = self.driver.find_element_by_css_selector('li.breadcrumb-item:nth-child(2) > span:nth-child(1) > a:nth-child(1)')
-        #section_button.click()
-        #time.sleep(self.delay)
         self.handle_click(section_button,self.delay)
 
     # @description returns the first section from the list that is not not in the url table with the inherient store_id, returns None if the whole list is
@@ -298,8 +274,6 @@ class harristeeterScraper(scrapy.Spider):
         except NoSuchElementException:
             return
         self.handle_click(next_arrow,self.delay)
-        #next_arrow.click()
-        #time.sleep(self.delay)
         current_url = self.driver.current_url
         store_url(self.conn,current_url,self.store_id,category,section,subsection,self.get_quantity())
         #Unfortunately we want to recurse until their is no more pages to walk through
