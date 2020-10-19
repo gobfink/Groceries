@@ -20,7 +20,7 @@ import re
 from util import (read_script, store_url, get_next_url,
                   get_url_metadata, lookup_category, finish_url, get_next_pagination,
                   trim_url, convert_to_ounces, convert_units, clean_string, 
-                  is_section_in_store_id, is_subsection_in_store_id)
+                  is_section_in_store_id, is_subsection_in_store_id, check_subsection_amount)
 
 
 
@@ -56,12 +56,15 @@ class harristeeterGroceryScraper(scrapy.Spider):
         products = response.css(PRODUCTS_CSS)
         for product in products :
             name = product.css('.product-name ::text').get()
-            price = product.css('.product-price ::text').get().replace('$','')
+            raw_price = product.css('.product-price ::text').get()
+            price = re.findall("[0-9]+.[0-9]*",raw_price)[0] # This will filter out any of the $'s and other text in the price'
+
             quantity = product.css('.product-quantity ::text').get()
             index_split=quantity.find('|')
             ppu = quantity[index_split+1:]
 
             amount = quantity[:index_split]
+
             ounces = self.collect_ounces(amount)
             unit = self.collect_unit(amount)
             
@@ -78,7 +81,7 @@ class harristeeterGroceryScraper(scrapy.Spider):
               "subsection": subsection
             }
 
-   
+        check_subsection_amount(self.cursor,url)
         finish_url(self.conn,self.store_id,url)
     
     # @description collects and returns the ounces from the grocery

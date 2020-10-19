@@ -346,3 +346,47 @@ def trim_url(trim_from,string_to_trim):
         trim_from = trim_from.replace(string_to_trim,'')
     return trim_from
 
+
+# @description checks the amount of groceries in the database for a given url
+# @param MySQLDb.cursor - cursor used to fetch the data from the database
+# @param string url - url to check
+# @returns dictionary (bool finished, int expected,int found) - finished is if all subsections have been scraped,
+#                                                          expected is the amount to be found for the given url,
+#                                                          found is the amount found 
+def check_subsection_amount(cursor, url):
+    ret = {
+     "Finished": False,
+     "Expected": 0,
+     "Found": 0,
+     "Url": url,
+     "Subsection": ""
+    }
+    #SELECT `Subsection`, `Id` FROM `urlTable` WHERE `Url` = 'https://www.harristeeter.com/shop/store/313/category/0/subCategory/1003/products?isSpecialSubCategory=true' LIMIT 50
+    quantitySql = f"SELECT (`grocery_quantity`) FROM `urlTable` WHERE `Url` = \"{url}\""
+    #print(f"quantitySql: {quantitySql}")
+    cursor.execute(quantitySql)
+    quantity = cursor.fetchone()[0]
+    print (f"found quantity: {quantity} from {quantitySql}")
+    subsectionSql = f"SELECT `Subsection` FROM `urlTable` WHERE `Url` = \"{url}\""
+    #print(f"subsectionSql: {subsectionSql}")
+    cursor.execute(subsectionSql)
+    subsection = cursor.fetchone()[0]
+    print (f"found subsection: {subsection} from {subsectionSql}")
+
+    finishedSql = f"SELECT MIN(`Scraped`) FROM `urlTable` WHERE `Subsection` = '{subsection}'"
+    cursor.execute(finishedSql)
+    finished = cursor.fetchone()[0] == 1
+    print (f"Finished: {finished} from {finishedSql}")
+
+    countSql = f"SELECT COUNT(*) FROM `groceryTable` WHERE `subsection` = '{subsection}'"
+    cursor.execute(countSql)
+    found = cursor.fetchone()[0]
+    ret["Subsection"] = subsection
+    ret["Finished"] = finished
+    ret["Expected"] = quantity
+    ret["Found"] = found
+
+    print(f"ret - {ret}")
+    print(f"For url - {url}: Expected={quantity}, Found={found}")
+
+    return ret
