@@ -219,7 +219,7 @@ def store_url(conn, url, store_id, category, section, subsection, grocery_quanti
     hits = cursor.fetchone()
     if hits is None:
         store_url_sql = ("INSERT INTO urlTable (url, store_id, scraped, Updated, category, section, subsection, hits, grocery_quantity)"
-                         f" VALUES ('{url}',{store_id},0,'{time}','{category}','{section}','{subsection}',1,{grocery_quantity});")
+                         f" VALUES (\"{url}\",{store_id},0,\"{time}\",\"{category}\",\"{section}\",\"{subsection}\",1,{grocery_quantity});")
         print(f"store_url_sql - {store_url_sql}")
         cursor.execute(store_url_sql)
         conn.commit()
@@ -275,8 +275,8 @@ def is_section_in_store_id(cursor, store_id, section):
 # @returns true if it finds a match else false
 def is_subsection_in_store_id(cursor, store_id, section, subsection, urlExclusion = ""):
     # Exclude the  `pageNo` string in case it was interrupeted in the middle of a crawling the pages for a section (the url without pageNo is added after)
-    section_query = f"SELECT * FROM `urlTable` where `store_id` = '{store_id}' AND `Section` = '{section}' AND `Subsection`='{subsection}' AND `Url` NOT LIKE '%pageNo%'"
-    #print(f"is_subsection_in_store_id - section_query: {section_query}")
+    section_query = f"SELECT * FROM `urlTable` where `store_id` = \"{store_id}\" AND `Section` = \"{section}\" AND `Subsection`=\"{subsection}\" AND `Url` NOT LIKE \"%pageNo%\""
+    print(f"is_subsection_in_store_id - section_query: {section_query}")
     cursor.execute(section_query)
     ret = cursor.fetchone() is not None
     return ret

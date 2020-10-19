@@ -24,8 +24,8 @@ from util import (read_script, store_url, get_next_url,
 
 
 
-class harristeeterScraper(scrapy.Spider):
-    name = "harris-teeter_spider"
+class harristeeterUrlScraper(scrapy.Spider):
+    name = "harris-teeter-url_spider"
     store_name = "harris-teeter"
     start_urls = ["https://www.harristeeter.com/shop/store/313"]
     base_url = start_urls[0]
@@ -238,7 +238,7 @@ class harristeeterScraper(scrapy.Spider):
             next_section = self.get_next_2nd_layer_section(section,subsection,sections)
 
         #Store the section url after so we know we've completed it
-        store_url(self.conn,current_url,self.store_id,category,section_name,"",self.get_quantity())
+        store_url(self.conn,section_url,self.store_id,section_category,section,subsection,self.get_quantity())
         #We then need to click on the section header to get back outside the menu and continue on
         section_button = self.driver.find_element_by_css_selector('li.breadcrumb-item:nth-child(2) > span:nth-child(1) > a:nth-child(1)')
         self.handle_click(section_button,self.delay)
@@ -286,13 +286,15 @@ class harristeeterScraper(scrapy.Spider):
         quantity_selector = ("body > app-root > div > hts-layout > span > hts-shop-by-category > div > " 
                             "section > div > div.product-category-list.col-lg-7.col-md-9.column7 >  "
                             "div.smart-filter.clearfix > h2 > span")
+        ret = 0
         try:
             quantity = self.driver.find_element_by_css_selector(quantity_selector).text
             quantity = clean_string(quantity,['(',')'])
+            if ret is None:
+                ret = 0
             ret = int(quantity)
         except NoSuchElementException:
             ret = 0
-            return
         print(f"in get_quantity - found quantity of {ret}")
         return ret
     # @description handles the attempted clicks and adds more time if it hits a timeout or nosuchelement exception
