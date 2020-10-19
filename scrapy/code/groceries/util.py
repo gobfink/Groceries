@@ -321,9 +321,9 @@ def convert_units(units):
         units = "OZ"
     elif units == "lb" or units == "lbs":
         units = "LB"
-    elif units == "each":
+    elif units == "each" or units == "ea":
         units = "EA"
-    elif units == "ct":
+    elif units == "count" or units == "ct":
         units = "CT"
     elif units == "floz":
         units = "FLOZ"
@@ -331,6 +331,10 @@ def convert_units(units):
         units = "SQFT"
     elif units == "yd":
         units = "YD"
+    elif units == "l":
+        units = "L"
+    elif units == "ml":
+        units = "ML"
     return units
 
 # @description trimgs a string from the end

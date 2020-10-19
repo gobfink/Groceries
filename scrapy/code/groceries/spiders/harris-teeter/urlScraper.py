@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains 
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
 
 
 from seleniumHelpers import create_parse_request, create_unfiltered_parse_request
@@ -304,7 +304,8 @@ class harristeeterUrlScraper(scrapy.Spider):
         try:
             clickme.click()
             time.sleep(waittime)
-        except NoSuchElementException:
+        except (NoSuchElementException, ElementClickInterceptedException) as e:
+            print (f"sleeping trying to click -  {clickme} and hit exception {e}")
             time.sleep(waittime)
             self.handle_click(clickme,waittime)
     # @description scrapes the urls from the response and stores in the database
