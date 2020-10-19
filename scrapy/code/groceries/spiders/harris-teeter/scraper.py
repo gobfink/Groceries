@@ -24,7 +24,7 @@ from util import (read_script, store_url, get_next_url,
 
 
 
-class safewayScraper(scrapy.Spider):
+class harristeeterScraper(scrapy.Spider):
     name = "harris-teeter_spider"
     store_name = "harris-teeter"
     start_urls = ["https://www.harristeeter.com/shop/store/313"]
@@ -107,9 +107,11 @@ class safewayScraper(scrapy.Spider):
         print("inside crawl_menu")
 
         accept_cookies = self.driver.find_element_by_css_selector('[title="Accept Cookies"]')
-        accept_cookies.click()
+        self.handle_click(accept_cookies,self.delay)
+        #accept_cookies.click()
         menu_button = self.driver.find_element_by_css_selector('.nav-open')
-        menu_button.click()
+        self.handle_click(menu_button,self.delay)
+        #menu_button.click()
         #We then need to scrape all of the (.'category-link') and then hover over each one and scrape the hrefs that appear
         sections=self.driver.find_elements_by_css_selector('.category-link')
         #Scraping the urls is tricky too. the href elements are all null. 
@@ -129,8 +131,9 @@ class safewayScraper(scrapy.Spider):
             #element = WebDriverWait(self.driver, 20).until(
             #                        EC.element_to_be_clickable((By.CSS_SELECTOR, ".category-link")))
             # Need to scroll down for the .sf-mega class
-            next_section.click()
-            time.sleep(self.delay)
+            #next_section.click()
+            #time.sleep(self.delay)
+            self.handle_click(next_section,self.delay)
 
             current_url = self.driver.current_url
             category = lookup_category("",section_name,"")
@@ -141,8 +144,9 @@ class safewayScraper(scrapy.Spider):
             num_groceries=self.get_quantity()
             store_url(self.conn,current_url,self.store_id,category,section_name,"",num_groceries)
             # Now we need to reset it and do it again
-            menu_button.click()
-            time.sleep(self.delay)
+            self.handle_click(menu_button,self.delay)
+            #menu_button.click()
+            #time.sleep(self.delay)
             sections=self.driver.find_elements_by_css_selector('.category-link')
             next_section = self.get_next_section(sections)
         return
@@ -177,9 +181,10 @@ class safewayScraper(scrapy.Spider):
             subsection_text = current_subsection.get_attribute('innerText')
             #element = WebDriverWait(self.driver, 20).until(
             #                        EC.element_to_be_clickable(next_subsection))
-            time.sleep(self.delay)
-            current_subsection.click()
-            time.sleep(self.delay)
+            #time.sleep(self.delay)
+            #current_subsection.click()
+            #time.sleep(self.delay)
+            self.handle_click(current_subsection,self.delay)
 
             try:
                 #From here we should check if we are in a different menu
@@ -238,9 +243,10 @@ class safewayScraper(scrapy.Spider):
             #The trick here is that for 2nd layer sections is to append the layer2 info on the subsection
             subsection_text = subsection +": "+section_text
 
-            time.sleep(self.delay)
-            current_section.click()
-            time.sleep(self.delay)
+            #time.sleep(self.delay)
+            #current_section.click()
+            #time.sleep(self.delay)
+            self.handle_click(current_section,self.delay)
 
 
             #print (f"subsection_text - {subsection_text}")
@@ -257,8 +263,9 @@ class safewayScraper(scrapy.Spider):
         store_url(self.conn,current_url,self.store_id,category,section_name,"",self.get_quantity())
         #We then need to click on the section header to get back outside the menu and continue on
         section_button = self.driver.find_element_by_css_selector('li.breadcrumb-item:nth-child(2) > span:nth-child(1) > a:nth-child(1)')
-        section_button.click()
-        time.sleep(self.delay)
+        #section_button.click()
+        #time.sleep(self.delay)
+        self.handle_click(section_button,self.delay)
 
     # @description returns the first section from the list that is not not in the url table with the inherient store_id, returns None if the whole list is
     # @param section - section to search for the subsections
@@ -290,8 +297,9 @@ class safewayScraper(scrapy.Spider):
             next_arrow = self.driver.find_element_by_css_selector('.next-arrow')
         except NoSuchElementException:
             return
-        next_arrow.click()
-        time.sleep(self.delay)
+        self.handle_click(next_arrow,self.delay)
+        #next_arrow.click()
+        #time.sleep(self.delay)
         current_url = self.driver.current_url
         store_url(self.conn,current_url,self.store_id,category,section,subsection,self.get_quantity())
         #Unfortunately we want to recurse until their is no more pages to walk through
@@ -313,6 +321,16 @@ class safewayScraper(scrapy.Spider):
             return
         print(f"in get_quantity - found quantity of {ret}")
         return ret
+    # @description handles the attempted clicks and adds more time if it hits a timeout or nosuchelement exception
+    # @param htmlelement clickme - element to click
+    # @param int waittime - time to wait
+    def handle_click(self, clickme, waittime):
+        try:
+            clickme.click()
+            time.sleep(waittime)
+        except NoSuchElementException:
+            time.sleep(waittime)
+            self.handle_click(clickme,waittime)
     # @description scrapes the urls from the response and stores in the database
     # @param response - html response of the webpage
     def scrape_urls(self,response):
