@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains 
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException, TimeoutException
 
 
 from seleniumHelpers import create_parse_request, create_unfiltered_parse_request
@@ -38,15 +38,25 @@ class harristeeterGroceryScraper(scrapy.Spider):
     def start_requests(self):
         print("inside start_requests")
         ADD_TO_CART_SELECTOR='#product-main > div.forlistview-right > span > a.btn.btn-primary'
+        #SELECTOR = '.smart-filter > h2:nth-child(1)'
+        #SIDEFILTER_SELECTOR='.sidefilter-title'
         next_url = get_next_url(self.cursor, 1)
         while next_url is not None:
             current_url = next_url
             scrape_url_request = create_parse_request(current_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR,ADD_TO_CART_SELECTOR)))
-            yield scrape_url_request
-            next_url = get_next_url(self.cursor,1)
+            #scrape_url_request = create_parse_request(current_url,self.parse,EC.visibility_of_element_located((By.CSS_SELECTOR,SELECTOR)))
+            i = 1
+            # This try except isnt really doing anything. Somehow I need to catch this and handle it elsewhere?
+            try:
+                yield scrape_url_request
+            except (NoSuchWindowException, TimeoutException) as e:
+                print (f"Handling exception {e} ")
+                i +=1
+            next_url = get_next_url(self.cursor,i)
 
     # @param response - html response of the webpage
     def parse(self, response):
+        time.sleep(1)
         url = response.url
         print (f"inside parse for {url}")
         PRODUCTS_CSS='#product-main'
@@ -56,6 +66,7 @@ class harristeeterGroceryScraper(scrapy.Spider):
         products = response.css(PRODUCTS_CSS)
         for product in products :
             name = product.css('.product-name ::text').get()
+            name = name.replace("'","")
             raw_price = product.css('.product-price ::text').get()
             price = re.findall("[0-9]+.[0-9]*",raw_price)[0] # This will filter out any of the $'s and other text in the price'
 

@@ -373,12 +373,12 @@ def check_subsection_amount(cursor, url):
     subsection = cursor.fetchone()[0]
     print (f"found subsection: {subsection} from {subsectionSql}")
 
-    finishedSql = f"SELECT MIN(`Scraped`) FROM `urlTable` WHERE `Subsection` = '{subsection}'"
+    finishedSql = f"SELECT MIN(`Scraped`) FROM `urlTable` WHERE `Subsection` = \"{subsection}\""
     cursor.execute(finishedSql)
     finished = cursor.fetchone()[0] == 1
     print (f"Finished: {finished} from {finishedSql}")
 
-    countSql = f"SELECT COUNT(*) FROM `groceryTable` WHERE `subsection` = '{subsection}'"
+    countSql = f"SELECT COUNT(*) FROM `groceryTable` WHERE `subsection` = \"{subsection}\""
     cursor.execute(countSql)
     found = cursor.fetchone()[0]
     ret["Subsection"] = subsection

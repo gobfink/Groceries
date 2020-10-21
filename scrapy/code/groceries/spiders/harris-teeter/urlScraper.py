@@ -251,7 +251,7 @@ class harristeeterUrlScraper(scrapy.Spider):
     def get_next_2nd_layer_section(self,section,subsection,layer2_sections):
         ret = None
         for layer2 in layer2_sections:
-            section_name = layer2.get_attribute('innerText')
+            section_name = clean_string(layer2.get_attribute('innerText'),["'"])
             subsection_text = subsection + ": " +section_name
             #For some reason this isn't saving the state when interupted during pagination
             is_section_in_store_id = is_subsection_in_store_id(self.cursor,self.store_id,section,subsection_text,"%pageNo%")
