@@ -190,8 +190,12 @@ def get_url_metadata(cursor, url):
 # @param MySQLDb.cursor - cursor used to fetch the data from the connection
 # @param int iteration - iteration used to offset from the table
 # @returns string url - next url found in the database pointed to by cursor
-def get_next_url(cursor, iteration):
-    sql = f"SELECT url from urlTable WHERE scraped=0 ORDER BY updated DESC LIMIT {iteration}"
+def get_next_url(cursor, iteration, store_id=-1):
+    if store_id == -1:
+        sql = f"SELECT url from urlTable WHERE scraped=0 ORDER BY updated DESC LIMIT {iteration}"
+    else:
+        sql = f"SELECT url from urlTable WHERE scraped=0 AND store_id={store_id} ORDER BY updated DESC LIMIT {iteration}"
+
     cursor.execute(sql)
     url = cursor.fetchone()
     if url is None:
