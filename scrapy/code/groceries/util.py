@@ -189,12 +189,16 @@ def get_url_metadata(cursor, url):
 # @description gets the next url in the database offset by iteration
 # @param MySQLDb.cursor - cursor used to fetch the data from the connection
 # @param int iteration - iteration used to offset from the table
+# @param int store_id - store_id to filter for when looking for urls, -1 will use all
+# @param Boolean scrape_urls - if set to true, this will look for the scraped_urls flag instead
 # @returns string url - next url found in the database pointed to by cursor
-def get_next_url(cursor, iteration, store_id=-1):
+def get_next_url(cursor, iteration, store_id=-1,scrape_urls=False):
     if store_id == -1:
         sql = f"SELECT url from urlTable WHERE scraped=0 ORDER BY updated DESC LIMIT {iteration}"
     else:
         sql = f"SELECT url from urlTable WHERE scraped=0 AND store_id={store_id} ORDER BY updated DESC LIMIT {iteration}"
+    if scrape_urls:
+        sql.replace("scraped","scraped_urls")
 
     cursor.execute(sql)
     url = cursor.fetchone()
@@ -222,8 +226,8 @@ def store_url(conn, url, store_id, category, section, subsection, grocery_quanti
     cursor.execute(store_query)
     hits = cursor.fetchone()
     if hits is None:
-        store_url_sql = ("INSERT INTO urlTable (url, store_id, scraped, Updated, category, section, subsection, hits, grocery_quantity)"
-                         f" VALUES (\"{url}\",{store_id},0,\"{time}\",\"{category}\",\"{section}\",\"{subsection}\",1,{grocery_quantity});")
+        store_url_sql = ("INSERT INTO urlTable (url, store_id, scraped, scraped_urls, Updated, category, section, subsection, hits, grocery_quantity)"
+                         f" VALUES (\"{url}\",{store_id}, 0, 0,\"{time}\",\"{category}\",\"{section}\",\"{subsection}\",1,{grocery_quantity});")
         print(f"store_url_sql - {store_url_sql}")
         cursor.execute(store_url_sql)
         conn.commit()
@@ -239,9 +243,12 @@ def store_url(conn, url, store_id, category, section, subsection, grocery_quanti
 # @param MySQLDb.connection - connection used to fetch/store the data from the database
 # @param int store_id - store_id associated with the url to update
 # @param string url - url to update
+# @param bool scrape_urls - sets scraped_urls instead of scraped for the url
 # @returns string url - url updated
-def finish_url(conn, store_id, url):
+def finish_url(conn, store_id, url,scrape_urls=False):
     url_update = f" UPDATE urlTable SET scraped=1 WHERE url=\"{url}\" AND store_id='{store_id}'"
+    if scrape_urls:
+        url_update.replace("scraped","scraped_urls")
     cursor = conn.cursor()
     print(f"finish_url - {url_update}")
     cursor.execute(url_update)

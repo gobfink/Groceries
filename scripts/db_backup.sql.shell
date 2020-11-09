@@ -160,6 +160,7 @@ CREATE TABLE `urlTable` (
   `Hits` int(10) unsigned NOT NULL,
   `store_id` int(11) NOT NULL,
   `Scraped` tinyint(1) NOT NULL,
+  `Scraped_Urls` tinyint(1) NOT NULL,
   `Category` varchar(50) NOT NULL,
   `Section` varchar(50) NOT NULL,
   `Subsection` varchar(50) NOT NULL,
