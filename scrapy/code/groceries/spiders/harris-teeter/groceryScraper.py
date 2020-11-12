@@ -61,6 +61,11 @@ class harristeeterGroceryScraper(scrapy.Spider):
         print (f"inside parse for {url}")
         PRODUCTS_CSS='#product-main'
         metadata=get_url_metadata(self.cursor,url)
+        if metadata is None:
+            print ("Could not find metadata for url - " + url +" - skipping")
+            finish_url(self.conn,self.store_id,url)
+            return
+
         section=metadata[1]
         subsection=metadata[2]
         products = response.css(PRODUCTS_CSS)

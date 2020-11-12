@@ -50,12 +50,18 @@ services:
      working_dir: /code/groceries/spiders/harris-teeter
      restart: unless-stopped
   harris-teeter:
+     healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh"]
+       interval: 20s
+       start_period: 10s
+       retries: 5
+    #TODO add a health check that counts if harris-teeter groceries are going up
      volumes:
      - ./scrapy/code:/code
      build: 
        context: scrapy/
        dockerfile: Dockerfile.selenium.runtime
-       shm_size: '3gb'
+       shm_size: '6gb'
      hostname: wegmans-scrapy
      environment: 
         - "PYTHONPATH=/code/groceries"
