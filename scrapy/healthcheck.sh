@@ -18,7 +18,7 @@ store_id=$($db_cmd --execute "SELECT id FROM storeTable WHERE name = '$store_nam
 grocery_count=$($db_cmd --execute "SELECT COUNT(*) FROM groceryTable WHERE store_id = '$store_id'" | sed 's/[^0-9]*//g' | awk '{printf("%s", $0)}')
 
 echo "export grocery_count=$grocery_count" > $groc_file
-if [[ $grocery_count -gt $old_grocery_count ]] ; then
+if [[ ! $grocery_count -gt $old_grocery_count ]] ; then
   kill 1
 fi
 #[[ $grocery_count -gt $old_grocery_count ]]

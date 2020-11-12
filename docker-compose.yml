@@ -52,9 +52,9 @@ services:
   harris-teeter:
      healthcheck:
        test: ["CMD", "/opt/healthcheck.sh"]
-       interval: 20s
-       start_period: 10s
-       retries: 5
+       interval: 30s
+       start_period: 90s
+       retries: 1
     #TODO add a health check that counts if harris-teeter groceries are going up
      volumes:
      - ./scrapy/code:/code
