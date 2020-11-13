@@ -51,7 +51,7 @@ services:
      restart: unless-stopped
   harris-teeter:
      healthcheck:
-       test: ["CMD", "/opt/healthcheck.sh"]
+       test: ["CMD", "/opt/healthcheck.sh", "harris-teeter"]
        interval: 30s
        start_period: 90s
        retries: 1
@@ -62,7 +62,7 @@ services:
        context: scrapy/
        dockerfile: Dockerfile.selenium.runtime
        shm_size: '6gb'
-     hostname: wegmans-scrapy
+     hostname: harristeeter-scrapy
      environment: 
         - "PYTHONPATH=/code/groceries"
      depends_on:
