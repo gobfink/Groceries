@@ -189,9 +189,17 @@ def get_url_metadata(cursor, url):
 # @description gets the next url in the database offset by iteration
 # @param MySQLDb.cursor - cursor used to fetch the data from the connection
 # @param int iteration - iteration used to offset from the table
+# @param int store_id - store_id to filter for when looking for urls, -1 will use all
+# @param Boolean scrape_urls - if set to true, this will look for the scraped_urls flag instead
 # @returns string url - next url found in the database pointed to by cursor
-def get_next_url(cursor, iteration):
-    sql = f"SELECT url from urlTable WHERE scraped=0 ORDER BY updated DESC LIMIT {iteration}"
+def get_next_url(cursor, iteration, store_id=-1,scrape_urls=False):
+    if store_id == -1:
+        sql = f"SELECT url from urlTable WHERE scraped=0 ORDER BY updated DESC LIMIT {iteration}"
+    else:
+        sql = f"SELECT url from urlTable WHERE scraped=0 AND store_id={store_id} ORDER BY updated DESC LIMIT {iteration}"
+    if scrape_urls:
+        sql.replace("scraped","scraped_urls")
+
     cursor.execute(sql)
     url = cursor.fetchone()
     if url is None:
@@ -208,7 +216,8 @@ def get_next_url(cursor, iteration):
 # @param string category - category of the store the url refers to 
 # @param string section - section of the store the url refers to 
 # @param string subsection - subsection of the store the url refers to
-def store_url(conn, url, store_id, category, section, subsection):
+# @param int grocery_quantity - number of groceries to expect for this url's subsection
+def store_url(conn, url, store_id, category, section, subsection, grocery_quantity=0):
     time = datetime.datetime.now()
     #url=url.replace("\'","\'\'")
     store_query = f"SELECT Hits FROM urlTable where url=\"{url}\" AND store_id='{store_id}'"
@@ -217,7 +226,8 @@ def store_url(conn, url, store_id, category, section, subsection):
     cursor.execute(store_query)
     hits = cursor.fetchone()
     if hits is None:
-        store_url_sql = f"INSERT INTO urlTable (url, store_id, scraped, Updated, category, section, subsection, hits) VALUES (\"{url}\",{store_id},0,\"{time}\",\"{category}\",\"{section}\",\"{subsection}\",1);"
+        store_url_sql = ("INSERT INTO urlTable (url, store_id, scraped, scraped_urls, Updated, category, section, subsection, hits, grocery_quantity)"
+                         f" VALUES (\"{url}\",{store_id}, 0, 0,\"{time}\",\"{category}\",\"{section}\",\"{subsection}\",1,{grocery_quantity});")
         print(f"store_url_sql - {store_url_sql}")
         cursor.execute(store_url_sql)
         conn.commit()
@@ -233,9 +243,12 @@ def store_url(conn, url, store_id, category, section, subsection):
 # @param MySQLDb.connection - connection used to fetch/store the data from the database
 # @param int store_id - store_id associated with the url to update
 # @param string url - url to update
+# @param bool scrape_urls - sets scraped_urls instead of scraped for the url
 # @returns string url - url updated
-def finish_url(conn, store_id, url):
+def finish_url(conn, store_id, url,scrape_urls=False):
     url_update = f" UPDATE urlTable SET scraped=1 WHERE url=\"{url}\" AND store_id='{store_id}'"
+    if scrape_urls:
+        url_update.replace("scraped","scraped_urls")
     cursor = conn.cursor()
     print(f"finish_url - {url_update}")
     cursor.execute(url_update)
@@ -252,6 +265,32 @@ def find_store_id(cursor, store_name, location):
     cursor.execute(store_query)
     store_id = cursor.fetchone()[0]
     return store_id
+
+# @description determines if the section is in the store_id
+# @param MySQLDb.cursor - cursor used to fetch the data from the connection
+# @param int store_id store_id to look in
+# @param string section the section to look for inside of the store_id
+# @returns true if it finds a match else false
+def is_section_in_store_id(cursor, store_id, section):
+    section_query = f"SELECT * FROM urlTable where store_id='{store_id}' AND section='{section}' AND subsection=''"
+    cursor.execute(section_query)
+    ret = cursor.fetchone() is not None
+    return ret
+
+# @description determines if the subsection is in the store_id - excludes any Urls with the string pageNo
+# @param MySQLDb.cursor - cursor used to fetch the data from the connection
+# @param int store_id store_id to look in
+# @param string section the section to look for inside of the store_id
+# @param string subsection the subsection to look for inside of the store_id
+# @param string urlExclusion a string to filter out of the urls when querying the database
+# @returns true if it finds a match else false
+def is_subsection_in_store_id(cursor, store_id, section, subsection, urlExclusion = ""):
+    # Exclude the  `pageNo` string in case it was interrupeted in the middle of a crawling the pages for a section (the url without pageNo is added after)
+    section_query = f"SELECT * FROM `urlTable` where `store_id` = \"{store_id}\" AND `Section` = \"{section}\" AND `Subsection`=\"{subsection}\" AND `Url` NOT LIKE \"%pageNo%\""
+    print(f"is_subsection_in_store_id - section_query: {section_query}")
+    cursor.execute(section_query)
+    ret = cursor.fetchone() is not None
+    return ret
 
 # @description updates the location for a given store_id
 # @param MySQLDb.connection - connection used to fetch/store the data from the database
@@ -293,9 +332,9 @@ def convert_units(units):
         units = "OZ"
     elif units == "lb" or units == "lbs":
         units = "LB"
-    elif units == "each":
+    elif units == "each" or units == "ea":
         units = "EA"
-    elif units == "ct":
+    elif units == "count" or units == "ct":
         units = "CT"
     elif units == "floz":
         units = "FLOZ"
@@ -303,6 +342,10 @@ def convert_units(units):
         units = "SQFT"
     elif units == "yd":
         units = "YD"
+    elif units == "l":
+        units = "L"
+    elif units == "ml":
+        units = "ML"
     return units
 
 # @description trimgs a string from the end
@@ -313,3 +356,48 @@ def trim_url(trim_from,string_to_trim):
     if trim_from.endswith(string_to_trim):
         trim_from = trim_from.replace(string_to_trim,'')
     return trim_from
+
+
+# @description checks the amount of groceries in the database for a given url
+# @param MySQLDb.cursor - cursor used to fetch the data from the database
+# @param string url - url to check
+# @returns dictionary (bool finished, int expected,int found) - finished is if all subsections have been scraped,
+#                                                          expected is the amount to be found for the given url,
+#                                                          found is the amount found 
+def check_subsection_amount(cursor, url):
+    ret = {
+     "Finished": False,
+     "Expected": 0,
+     "Found": 0,
+     "Url": url,
+     "Subsection": ""
+    }
+    #SELECT `Subsection`, `Id` FROM `urlTable` WHERE `Url` = 'https://www.harristeeter.com/shop/store/313/category/0/subCategory/1003/products?isSpecialSubCategory=true' LIMIT 50
+    quantitySql = f"SELECT (`grocery_quantity`) FROM `urlTable` WHERE `Url` = \"{url}\""
+    #print(f"quantitySql: {quantitySql}")
+    cursor.execute(quantitySql)
+    quantity = cursor.fetchone()[0]
+    print (f"found quantity: {quantity} from {quantitySql}")
+    subsectionSql = f"SELECT `Subsection` FROM `urlTable` WHERE `Url` = \"{url}\""
+    #print(f"subsectionSql: {subsectionSql}")
+    cursor.execute(subsectionSql)
+    subsection = cursor.fetchone()[0]
+    print (f"found subsection: {subsection} from {subsectionSql}")
+
+    finishedSql = f"SELECT MIN(`Scraped`) FROM `urlTable` WHERE `Subsection` = \"{subsection}\""
+    cursor.execute(finishedSql)
+    finished = cursor.fetchone()[0] == 1
+    print (f"Finished: {finished} from {finishedSql}")
+
+    countSql = f"SELECT COUNT(*) FROM `groceryTable` WHERE `subsection` = \"{subsection}\""
+    cursor.execute(countSql)
+    found = cursor.fetchone()[0]
+    ret["Subsection"] = subsection
+    ret["Finished"] = finished
+    ret["Expected"] = quantity
+    ret["Found"] = found
+
+    print(f"ret - {ret}")
+    print(f"For url - {url}: Expected={quantity}, Found={found}")
+
+    return ret

@@ -74,7 +74,8 @@ HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 
 SELENIUM_DRIVER_NAME = 'firefox'
 SELENIUM_DRIVER_EXECUTABLE_PATH = which('geckodriver')
-SELENIUM_DRIVER_ARGUMENTS=['-headless','-set_page_load_timeout=100']  
+SELENIUM_DRIVER_ARGUMENTS=['-headless','-set_page_load_timeout=150']  
+#SELENIUM_DRIVER_ARGUMENTS=['-set_page_load_timeout=150']  
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
