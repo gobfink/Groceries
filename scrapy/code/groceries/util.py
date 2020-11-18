@@ -194,12 +194,13 @@ def get_url_metadata(cursor, url):
 # @returns string url - next url found in the database pointed to by cursor
 def get_next_url(cursor, iteration, store_id=-1,scrape_urls=False):
     if store_id == -1:
-        sql = f"SELECT url from urlTable WHERE scraped=0 ORDER BY updated DESC LIMIT {iteration}"
+        sql = f"SELECT url from urlTable WHERE Scraped=0 ORDER BY updated DESC LIMIT {iteration}"
     else:
-        sql = f"SELECT url from urlTable WHERE scraped=0 AND store_id={store_id} ORDER BY updated DESC LIMIT {iteration}"
+        sql = f"SELECT url from urlTable WHERE Scraped=0 AND store_id={store_id} ORDER BY updated DESC LIMIT {iteration}"
     if scrape_urls:
-        sql.replace("scraped","scraped_urls")
+        sql = sql.replace("Scraped","Scraped_Urls")
 
+    print (f"Running - {sql}")
     cursor.execute(sql)
     url = cursor.fetchone()
     if url is None:
@@ -248,7 +249,7 @@ def store_url(conn, url, store_id, category, section, subsection, grocery_quanti
 def finish_url(conn, store_id, url,scrape_urls=False):
     url_update = f" UPDATE urlTable SET scraped=1 WHERE url=\"{url}\" AND store_id='{store_id}'"
     if scrape_urls:
-        url_update.replace("scraped","scraped_urls")
+        url_update = url_update.replace("scraped","scraped_urls")
     cursor = conn.cursor()
     print(f"finish_url - {url_update}")
     cursor.execute(url_update)

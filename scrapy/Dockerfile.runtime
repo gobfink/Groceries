@@ -1,5 +1,5 @@
 FROM python
 RUN pip install --upgrade pip ; pip install scrapy ; pip install scrapy-splash ; pip install scrapy-selenium ; pip install mysqlclient
 RUN apt update
-RUN apt install default-mysql-client
+RUN apt install -y default-mysql-client
 ADD healthcheck.sh /opt/healthcheck.sh

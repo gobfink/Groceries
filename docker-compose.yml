@@ -109,6 +109,52 @@ services:
      entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
      working_dir: /code/groceries/spiders/safeway
      restart: unless-stopped
+  lidl-urls:
+    healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh", "lidl", "url"]
+       interval: 30s
+       start_period: 90s
+       retries: 1
+    volumes:
+    - ./scrapy/code:/code
+    build:
+      context: scrapy/
+      dockerfile: Dockerfile.runtime
+    hostname: lidl-urls
+    depends_on:
+      - splash-middleware
+      - db
+      - adminer
+    networks:
+      - backend
+    working_dir: /code/groceries/spiders/lidl
+    entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
+    environment:
+      PYTHONPATH: /code/groceries/
+    restart: unless-stopped
+  lidl-groceries:
+    healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh", "lidl", "groceries"]
+       interval: 30s
+       start_period: 90s
+       retries: 1
+    volumes:
+    - ./scrapy/code:/code
+    build:
+      context: scrapy/
+      dockerfile: Dockerfile.runtime
+    hostname: lidl-groceries
+    depends_on:
+      - splash-middleware
+      - db
+      - adminer
+    networks:
+      - backend
+    working_dir: /code/groceries/spiders/lidl
+    entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
+    environment:
+      PYTHONPATH: /code/groceries/
+    restart: unless-stopped
   lidl:
     volumes:
     - ./scrapy/code:/code
