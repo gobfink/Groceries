@@ -30,8 +30,13 @@ services:
      - backend
      entrypoint:
      - "/bin/bash"
-     working_dir: /code/groceries/spiders/harris-teeter
+     working_dir: /code/groceries/spiders/safeway
   harris-teeter-urls:
+     healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh", "harris-teeter", "url"]
+       interval: 30s
+       start_period: 90s
+       retries: 1
      volumes:
      - ./scrapy/code:/code
      build: 
@@ -51,7 +56,7 @@ services:
      restart: unless-stopped
   harris-teeter:
      healthcheck:
-       test: ["CMD", "/opt/healthcheck.sh", "harris-teeter"]
+       test: ["CMD", "/opt/healthcheck.sh", "harris-teeter", "groceries"]
        interval: 30s
        start_period: 90s
        retries: 1
@@ -92,13 +97,18 @@ services:
      working_dir: /code/groceries/spiders/wegmans
      restart: unless-stopped
   safeway:
+     healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh", "safeway", "groceries"]
+       interval: 30s
+       start_period: 90s
+       retries: 1
      volumes:
      - ./scrapy/code:/code
      build: 
        context: scrapy/
        dockerfile: Dockerfile.selenium.runtime
        shm_size: '4gb'
-     hostname: safeway-scrapy
+     hostname: safeway-groceries
      environment: 
         - "PYTHONPATH=/code/groceries"
      depends_on:
@@ -106,7 +116,30 @@ services:
      -  adminer
      networks:
      - backend
-     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+     entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
+     working_dir: /code/groceries/spiders/safeway
+     restart: unless-stopped
+  safeway-urls:
+     healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh", "safeway", "url"]
+       interval: 60s
+       start_period: 200s
+       retries: 1
+     volumes:
+     - ./scrapy/code:/code
+     build: 
+       context: scrapy/
+       dockerfile: Dockerfile.selenium.runtime
+       shm_size: '6gb'
+     hostname: safeway-urls
+     environment: 
+        - "PYTHONPATH=/code/groceries"
+     depends_on:
+     -  db
+     -  adminer
+     networks:
+     - backend
+     entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
      working_dir: /code/groceries/spiders/safeway
      restart: unless-stopped
   lidl-urls:
