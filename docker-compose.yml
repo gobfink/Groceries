@@ -142,6 +142,29 @@ services:
      entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
      working_dir: /code/groceries/spiders/safeway
      restart: unless-stopped
+  safeway-groceries:
+     healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh", "safeway", "grocery"]
+       interval: 60s
+       start_period: 200s
+       retries: 1
+     volumes:
+     - ./scrapy/code:/code
+     build: 
+       context: scrapy/
+       dockerfile: Dockerfile.selenium.runtime
+       shm_size: '6gb'
+     hostname: safeway-groceries
+     environment: 
+        - "PYTHONPATH=/code/groceries"
+     depends_on:
+     -  db
+     -  adminer
+     networks:
+     - backend
+     entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
+     working_dir: /code/groceries/spiders/safeway
+     restart: unless-stopped
   lidl-urls:
     healthcheck:
        test: ["CMD", "/opt/healthcheck.sh", "lidl", "url"]

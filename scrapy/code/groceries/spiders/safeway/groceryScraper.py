@@ -17,7 +17,7 @@ from util import (read_script, store_url, get_next_url,
                   trim_url, convert_to_ounces, convert_units, clean_string)
 
 class safewayScraper(scrapy.Spider):
-    name = "safeway_spider"
+    name = "safeway__grocery_spider"
     store_name = "safeway"
     start_urls = ["https://www.safeway.com/shop/aisles.1431.html"]
     base_url = "https://www.safeway.com"
@@ -88,51 +88,13 @@ class safewayScraper(scrapy.Spider):
                                                              EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
    
         yield scrape_request
-
-    # @description scrapes the urls from the response and stores in the database
-    # @param response - html response of the webpage
-    def scrape_urls(self,response):
-        mainGroups = response.css('.col-12.col-sm-12.col-md-4.col-lg-4.col-xl-3')
-        #TODO can probably infer some categories from location
-        for mainGroup in mainGroups:
-            view_all = mainGroup.css('.text-uppercase.view-all-subcats ::attr(href)').get()
-            view_all_url = self.base_url + view_all
-            section = mainGroup.css('.product-title.text-uppercase ::text').get()
-            section = section.strip()
-            category = lookup_category("",section,"")
-            #print (f"view_all_url - {view_all_url}, section - {section}, category - {category}")
-            store_url(self.conn,view_all_url,self.store_id, category,section,"")
-
-        siblingAisles = response.css('.siblingAisle')
-        for siblingAisle in siblingAisles:
-            href = siblingAisle.css('::attr(href)').get()
-            siblingAisleUrl = self.base_url + href
-            section = response.css('[aria-current="location"] ::text').get()
-            section = section.strip()
-            subsection = siblingAisle.css('::text').get()
-            subsection = subsection.strip()
-            category = lookup_category("",section,subsection)
-            store_url(self.conn,siblingAisleUrl,self.store_id,category,section,subsection)
-#
-        #check if it has a load-more button and then increment page number on it
-        if response.css('.primary-btn.btn.btn-default.btn-secondary.bloom-load-button').get() is not None:
-            path = response.css('[aria-current]:not(.menu-nav__sub-item) ::text').getall()
-            #print(f"path - {path} for url - {response.url}")
-            section = path[1]
-            section = section.strip()
-            subsection = path[-2]
-            subsection = subsection.strip()
-            category = lookup_category("",section,subsection)
-            next_page_url=get_next_pagination(self.page_str,response.url)
-            print (f'load-more-button. storing - {next_page_url}, section - {section}, subsection - {subsection}, category - {category}')
-            store_url(self.conn,next_page_url,self.store_id,category,section,subsection)
+        
     # @description first scrapes the urls, then goes through and parses the groceries from the webpage
     # @param response - html response of the webpage
     def parse(self, response):
         page_1_str=self.page_str+"1"
         this_url = trim_url(response.url,page_1_str)
         print (f"inside parse for {this_url}")
-        self.scrape_urls(response)
 
         # Only scrape pages that have the page_str in the url.
         if this_url.find(self.page_str) != -1:
