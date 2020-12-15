@@ -91,11 +91,14 @@ def convert_ppu(incoming_ppu):
 # @returns float ret - ounces derived from the weight, or 0 if ounces couldn't be derived
 def convert_to_ounces(weight):
     if weight is None:
-        return weight
+        return 0
     ret = 0
     weight.replace(' ', '')
     weight=weight.lower()
-    if (weight.find("ounce") != -1):
+    if (weight.find("fl") != -1):
+        #can't convert fluid ounces to regular ounces
+        ret = 0
+    elif (weight.find("ounce") != -1):
         ret = float(weight.replace('ounce', ''))
     elif (weight.find("oz.") != -1):
         ret = float(weight.replace("oz.",''))
