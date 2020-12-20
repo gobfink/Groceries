@@ -197,12 +197,13 @@ def get_url_metadata(cursor, url):
 # @param string filter - filters the url for the given string
 # @returns string url - next url found in the database pointed to by cursor
 def get_next_url(cursor, iteration, store_id=-1,scrape_urls=False,filter=""):
-    sql = f"SELECT url from urlTable WHERE Scraped=0 LIKE '%{filter}%' ORDER BY updated DESC LIMIT {iteration}"
+    sql = f"SELECT url from urlTable WHERE Scraped=0 ORDER BY updated DESC LIMIT {iteration}"
     #if store_id == -1:
     #    sql = f"SELECT url from urlTable WHERE Scraped=0 ORDER BY updated DESC LIMIT {iteration}"
     #else:
     #    sql = f"SELECT url from urlTable WHERE Scraped=0 AND store_id={store_id} ORDER BY updated DESC LIMIT {iteration}"
-
+    if filter != "":
+        sql = sql.replace("ORDER", f"LIKE '%{filter}%' ORDER")
     if store_id != -1:
         sql = sql.replace("WHERE", f"WHERE store_id={store_id} AND")
     if scrape_urls:

@@ -28,7 +28,7 @@ class safewayUrlScraper(scrapy.Spider):
     location = "12821 Braemar Village Plaza"
     zipcode = "20136"
     page_str="?sort=&page="
-    # For some reason all the urls 
+    # For some reason all the urls
     default_store_number="3132"
     store_number=0
 
@@ -41,9 +41,9 @@ class safewayUrlScraper(scrapy.Spider):
                                                 EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
         yield location_request
 
-    # @description changes the locaion of the webpage. 
+    # @description changes the locaion of the webpage.
     # @TODO if it doesn't find the location it will just hang
-    # @param zipcode - string : zipcode of the location to change to 
+    # @param zipcode - string : zipcode of the location to change to
     # @param location - string : address of the location of the store to change to
     def change_location(self, zipcode, location):
         print(f"changing location to {self.location}")
@@ -88,7 +88,7 @@ class safewayUrlScraper(scrapy.Spider):
         scrape_request = create_unfiltered_parse_request(response.url,
                                                          self.run,
                                                          EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
-   
+
         yield scrape_request
 
     # @description scrapes the urls from the response and stores in the database
@@ -156,11 +156,16 @@ class safewayUrlScraper(scrapy.Spider):
     # @param response - html response of the webpage
     def run(self, response):
         page_1_str=self.page_str+"1"
+        meta_url = response.meta.get("url")
         #Basically the website redirects us to the url and page_1_str, which isn't added to our database
         # So we trim that off so we can get the url in our database
         this_url = trim_url(response.url,page_1_str)
-        print (f"inside run for {this_url}")
-        self.scrape_urls(response)
+        print (f"inside run for {this_url}, meta_url: {meta_url}")
+        if meta_url != this_url:
+            print (f"meta_url: {meta_url} !=  response.url: {response.url}, therefore it must be invalid - skipping")
+            this_url = meta_url
+        else :
+            self.scrape_urls(response)
 
         finish_url(self.conn,self.store_id,this_url,True)
         print("finishing url - " + this_url)
@@ -170,7 +175,7 @@ class safewayUrlScraper(scrapy.Spider):
             return
         else:
             next_request = create_unfiltered_parse_request(next_url,
-                                                self.check_location,
+                                                self.run,
                                                 EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
         print(f"got next_url - {next_url}")
 
