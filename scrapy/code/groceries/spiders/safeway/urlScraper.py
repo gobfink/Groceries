@@ -104,6 +104,7 @@ class safewayUrlScraper(scrapy.Spider):
         #TODO can probably infer some categories from location
         for mainGroup in mainGroups:
             #print (f"Using mainGroup - {mainGroup}")
+            #It might be coming from here? it looks like the main categories are all having issues
             view_all = mainGroup.css('.text-uppercase.view-all-subcats ::attr(href)').get()
             view_all_url = self.base_url + view_all
             view_all_url = view_all_url.replace(self.default_store_number, self.store_number)

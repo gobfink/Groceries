@@ -119,8 +119,8 @@ def convert_to_ounces(weight):
 
     return ret
 
-# @decription - removes $ from price 
-# @param string price - string of the form $XX.XX to XX.XX 
+# @decription - removes $ from price
+# @param string price - string of the form $XX.XX to XX.XX
 # @returns string p - price without $ or 0 if None
 def convert_dollars(price):
     if price is None:
@@ -194,12 +194,17 @@ def get_url_metadata(cursor, url):
 # @param int iteration - iteration used to offset from the table
 # @param int store_id - store_id to filter for when looking for urls, -1 will use all
 # @param Boolean scrape_urls - if set to true, this will look for the scraped_urls flag instead
+# @param string filter - filters the url for the given string
 # @returns string url - next url found in the database pointed to by cursor
-def get_next_url(cursor, iteration, store_id=-1,scrape_urls=False):
-    if store_id == -1:
-        sql = f"SELECT url from urlTable WHERE Scraped=0 ORDER BY updated DESC LIMIT {iteration}"
-    else:
-        sql = f"SELECT url from urlTable WHERE Scraped=0 AND store_id={store_id} ORDER BY updated DESC LIMIT {iteration}"
+def get_next_url(cursor, iteration, store_id=-1,scrape_urls=False,filter=""):
+    sql = f"SELECT url from urlTable WHERE Scraped=0 LIKE '%{filter}%' ORDER BY updated DESC LIMIT {iteration}"
+    #if store_id == -1:
+    #    sql = f"SELECT url from urlTable WHERE Scraped=0 ORDER BY updated DESC LIMIT {iteration}"
+    #else:
+    #    sql = f"SELECT url from urlTable WHERE Scraped=0 AND store_id={store_id} ORDER BY updated DESC LIMIT {iteration}"
+
+    if store_id != -1:
+        sql = sql.replace("WHERE", f"WHERE store_id={store_id} AND")
     if scrape_urls:
         sql = sql.replace("Scraped","Scraped_Urls")
 
@@ -217,8 +222,8 @@ def get_next_url(cursor, iteration, store_id=-1,scrape_urls=False):
 # @param MySQLDb.conn - connection to the database
 # @param string url - url to store in the database
 # @param int store_id - id of the store refered to
-# @param string category - category of the store the url refers to 
-# @param string section - section of the store the url refers to 
+# @param string category - category of the store the url refers to
+# @param string section - section of the store the url refers to
 # @param string subsection - subsection of the store the url refers to
 # @param int grocery_quantity - number of groceries to expect for this url's subsection
 def store_url(conn, url, store_id, category, section, subsection, grocery_quantity=0):
@@ -263,7 +268,7 @@ def finish_url(conn, store_id, url,scrape_urls=False):
 # @param MySQLDb.cursor - cursor used to fetch the data from the connection
 # @param string store_name - store_name used to find the store_id for
 # @param string location - address of the store to find the store_id for
-# @returns int store_id 
+# @returns int store_id
 def find_store_id(cursor, store_name, location):
     store_query = f"SELECT id FROM storeTable where name='{store_name}' AND location='{location}'"
     cursor.execute(store_query)
@@ -327,7 +332,7 @@ def get_next_pagination(page_string, url):
 
 # @description converts the units into a generic set of units used between spiders
 # @Params string units - units to be converted and made generic
-# @returns string units generified units 
+# @returns string units generified units
 def convert_units(units):
     units=units.lower()
     units = clean_string(units,['.',' '])
@@ -353,7 +358,7 @@ def convert_units(units):
     return units
 
 # @description trimgs a string from the end
-# @param string trim_from - string to trim from  
+# @param string trim_from - string to trim from
 # @param string_to_trim - string to remove
 # @returns string - trimmed string
 def trim_url(trim_from,string_to_trim):
@@ -367,7 +372,7 @@ def trim_url(trim_from,string_to_trim):
 # @param string url - url to check
 # @returns dictionary (bool finished, int expected,int found) - finished is if all subsections have been scraped,
 #                                                          expected is the amount to be found for the given url,
-#                                                          found is the amount found 
+#                                                          found is the amount found
 def check_subsection_amount(cursor, url):
     ret = {
      "Finished": False,
