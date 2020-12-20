@@ -98,8 +98,13 @@ def convert_to_ounces(weight):
     weight=weight.lower()
     quantity = 1
     if (weight.find("-") != -1):
-        quantity = re.findall("([0-9]+)-",weight)[0]
-        weight = re.findall("-([0-9]+.[0-9]*)",weight)[0]
+        try:
+            quantity = re.findall("([0-9]+)-",weight)[0]
+            weight = re.findall("-([0-9]*.[0-9]*)",weight)[0]
+        except IndexError:
+            print(f"Could not find parse a weight from: {weight}")
+            quantity = 0
+            weight = 0
     try:
         if (weight.find("fl") != -1):
             #can't convert fluid ounces to regular ounces
