@@ -1,5 +1,6 @@
 import datetime
 import MySQLdb
+import re
 
 # @description returns the category based on the name, section, and subsection
 # @param string name - name to return the category for
@@ -95,29 +96,36 @@ def convert_to_ounces(weight):
     ret = 0
     weight.replace(' ', '')
     weight=weight.lower()
-    if (weight.find("fl") != -1):
-        #can't convert fluid ounces to regular ounces
-        ret = 0
-    elif (weight.find("ounce") != -1):
-        ret = float(weight.replace('ounce', ''))
-    elif (weight.find("oz.") != -1):
-        ret = float(weight.replace("oz.",''))
-    elif (weight.find("oz") != -1):
-        ret = float(weight.replace("oz",''))
-    elif (weight.find("lb.") != -1):
-        ret = weight.replace('lb.', '')
-        ret = float(ret) * 16
-    elif (weight.find("lbs.") != -1):
-        ret = weight.replace('lbs.','')
-        if ret.isdigit():
-            ret = float(ret) * 16
-        else:
-            print(f"convert_to_ounces - {ret} - is not a digit")
+    quantity = 1
+    if (weight.find("-") != -1):
+        quantity = re.findall("([0-9]+)-",weight)[0]
+        weight = re.findall("-([0-9]+.[0-9]*)",weight)[0]
+    try:
+        if (weight.find("fl") != -1):
+            #can't convert fluid ounces to regular ounces
             ret = 0
-    else:
-        print("convert_to_ounces - unsupported weight of: " + weight)
-
-    return ret
+        elif (weight.find("ounce") != -1):
+            ret = float(weight.replace('ounce', ''))
+        elif (weight.find("oz.") != -1):
+            ret = float(weight.replace("oz.",''))
+        elif (weight.find("oz") != -1):
+            ret = float(weight.replace("oz",''))
+        elif (weight.find("lb.") != -1):
+            ret = weight.replace('lb.', '')
+            ret = float(ret) * 16
+        elif (weight.find("lbs.") != -1):
+            ret = weight.replace('lbs.','')
+            if ret.isdigit():
+                ret = float(ret) * 16
+            else:
+                print(f"convert_to_ounces - {ret} - is not a digit")
+                ret = 0
+        else:
+            print("convert_to_ounces - unsupported weight of: " + weight)
+    except ValueError:
+        print(f"Couldn't convert weight: {weight}, to ounces returning 0")
+        ret = 0
+    return ret * quantity
 
 # @decription - removes $ from price
 # @param string price - string of the form $XX.XX to XX.XX
