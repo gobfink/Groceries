@@ -84,12 +84,25 @@ class safewayUrlScraper(scrapy.Spider):
         else:
             print(f"current location is already {current_location} == {self.location}")
 
+        meta_url = self.replace_store_number(response.url)
+
         #Now that we've checked the location now lets pass it to the parsing section
         scrape_request = create_unfiltered_parse_request(response.url,
                                                          self.run,
-                                                         EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
+                                                         EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')),
+                                                         meta_url=meta_url)
 
         yield scrape_request
+
+    # @brief returns the url with self.store_number
+    # @param url - url to replace
+    # @returns ret - url with replaced store_number
+    def replace_store_number(self,url):
+        current_number = str(re.findall(r'[\d]+',url)[0])
+        ret = url.replace(current_number,self.store_number)
+        print("replace_store_number: old_url - ", url, ", new store_number: ", self.store_number, ", ret: ", ret)
+
+        return ret
 
     # @description scrapes the urls from the response and stores in the database
     # @param response - html response of the webpage
@@ -107,7 +120,7 @@ class safewayUrlScraper(scrapy.Spider):
             #It might be coming from here? it looks like the main categories are all having issues
             view_all = mainGroup.css('.text-uppercase.view-all-subcats ::attr(href)').get()
             view_all_url = self.base_url + view_all
-            view_all_url = view_all_url.replace(self.default_store_number, self.store_number)
+            view_all_url = self.replace_store_number(view_all_url)
             section = mainGroup.css('.product-title.text-uppercase ::text').get()
             section = section.strip()
             category = lookup_category("",section,"")
@@ -119,7 +132,7 @@ class safewayUrlScraper(scrapy.Spider):
             aisleName = aisleCategory.css('::attr(data-aisle-name)').get().strip()
             aisleHref = aisleCategory.css('::attr(href)').get()
             aisleUrl = self.base_url + aisleHref
-            aisleUrl = aisleUrl.replace(self.default_store_number, self.store_number)
+            aisleUrl = self.replace_store_number(aisleUrl)
             subsection = aisleName
             category = lookup_category("",section,subsection)
             print (f"found aisleCategory with section - {section}, subsection - {subsection} ")
@@ -130,7 +143,7 @@ class safewayUrlScraper(scrapy.Spider):
             print (f"using siblingAisle - {siblingAisle}")
             href = siblingAisle.css('::attr(href)').get()
             siblingAisleUrl = self.base_url + href
-            siblingAisleUrl = siblingAisleUrl.replace(self.default_store_number, self.store_number)
+            siblingAisleUrl = self.replace_store_number(siblingAisleUrl)
             section = response.css('[aria-current="location"] ::text').get()
             section = section.strip()
             subsection = siblingAisle.css('::text').get()
@@ -149,7 +162,7 @@ class safewayUrlScraper(scrapy.Spider):
             subsection = subsection.strip()
             category = lookup_category("",section,subsection)
             next_page_url=get_next_pagination(self.page_str,response.url)
-            next_page_url = next_page_url.replace(self.default_store_number, self.store_number)
+            next_page_url = self.replace_store_number(next_page_url)
             print (f'load-more-button. storing - {next_page_url}, section - {section}, subsection - {subsection}, category - {category}')
             store_url(self.conn,next_page_url,self.store_id,category,section,subsection)
     # @description first scrapes the urls, then goes through and parses the groceries from the webpage
