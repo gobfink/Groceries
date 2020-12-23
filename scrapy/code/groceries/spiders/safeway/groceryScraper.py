@@ -43,7 +43,7 @@ class safewayScraper(scrapy.Spider):
     # @param zipcode - string : zipcode of the location to change to
     # @param location - string : address of the location of the store to change to
     def change_location(self, zipcode, location):
-        print(f"changing location to {self.location}")
+        self.logger.info(f"changing location to {self.location}")
         change_button = self.driver.find_element_by_css_selector('#openFulfillmentModalButton')
         change_button.click()
         zip_input = self.driver.find_element_by_css_selector('[aria-labelledby="zipcode"]')
@@ -54,9 +54,9 @@ class safewayScraper(scrapy.Spider):
 
         for store in stores:
             caption = store.find_element_by_css_selector('.caption').text
-            print (f"store - {store}, {caption}")
+            self.logger.info (f"store - {store}, {caption}")
             if location in caption:
-                print (f"found {location} in {caption}")
+                self.logger.info (f"found {location} in {caption}")
                 button = store.find_element_by_css_selector('[role="button"]')
                 button.click()
                 time.sleep(5)
@@ -64,7 +64,7 @@ class safewayScraper(scrapy.Spider):
 
         url = self.driver.current_url
         self.store_number = str(re.findall(r'\d{4}',url)[0])
-        print(f"Setting store number to - {self.store_number}")
+        self.logger.info(f"Setting store number to - {self.store_number}")
 
     # @decription checks the location on the website and compares it with that on the scraper
     #             if its the same it continues, if not it will call change_location to change it
@@ -74,22 +74,22 @@ class safewayScraper(scrapy.Spider):
     def check_location(self, response):
         self.driver=response.request.meta['driver']
         current_location = self.driver.find_element_by_css_selector('.reserve-nav__current-instore-text').text
-        print(f"current_location = {current_location} and it should be {self.location}")
+        self.logger.info(f"current_location = {current_location} and it should be {self.location}")
         if current_location != self.location:
-            print ("changing location")
+            self.logger.info ("changing location")
             self.change_location(self.zipcode,self.location)
         else:
-            print(f"current location is already {current_location} == {self.location}")
+            self.logger.info(f"current location is already {current_location} == {self.location}")
 
         #Now that we've checked the location now lets pass it to the parsing section
         if response.url.find(self.page_str) != -1:
-            print(f'{response.url} has page string')
+            self.logger.info(f'{response.url} has page string')
             scrape_request = create_unfiltered_parse_request(response.url,
                                                              self.parse,
                                                              EC.element_to_be_clickable((By.CSS_SELECTOR,'product-item-v2')))
                                                              #EC.element_to_be_clickable((By.CSS_SELECTOR,'.add-product [role="button"]')))
         else:
-            print()
+            self.logger.info()
             scrape_request = create_unfiltered_parse_request(response.url,
                                                              self.parse,
                                                              EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
@@ -103,23 +103,23 @@ class safewayScraper(scrapy.Spider):
         meta_url = response.meta.get('url')
         this_url = response.url #trim_url(response.url,page_1_str)
         trimmed_url = trim_url(response.url,page_1_str)
-        print (f"inside parse for meta_url: {meta_url}, response.url: {response.url}")
+        self.logger.info (f"inside parse for meta_url: {meta_url}, response.url: {response.url}")
 
         # Only scrape pages that have the page_str in the url.
         if this_url.find(self.page_str) == -1 :
-            print(f"Skipping {this_url} because it couldn't find {self.page_str}")
+            self.logger.info(f"Skipping {this_url} because it couldn't find {self.page_str}")
         elif meta_url != response.url:
-            print(f"meta_url: {meta_url} != response.url: {response.url}, and so we are finishing stale {meta_url}")
+            self.logger.info(f"meta_url: {meta_url} != response.url: {response.url}, and so we are finishing stale {meta_url}")
             this_url = meta_url
         else:
-            print (f"scraping for {this_url}")
+            self.logger.info (f"scraping for {this_url}")
             items = response.css('product-item-v2')
-            print(f"length of items - {len(items)}")
+            self.logger.info(f"length of items - {len(items)}")
             ## FIXME For some reason the middleware is returning an empty response for all of the urls that reach here.
             #inspect_response(response,self)
             metadata=get_url_metadata(self.cursor,trimmed_url)
             if len(metadata) != 3:
-                print(f"Couldn't detect metadata: {metadata}, for trimmed_url: {trimmed_url}, defaulting to empty")
+                self.logger.info(f"Couldn't detect metadata: {metadata}, for trimmed_url: {trimmed_url}, defaulting to empty")
                 section=""
                 subsection=""
             else:
@@ -137,7 +137,7 @@ class safewayScraper(scrapy.Spider):
                     ounces = self.collect_ounces(name)
                 else:
                     ounces = 0
-                print (f"yielding - {name}, {price}, {ppu}, {ounces}, {unit}")
+                self.logger.info (f"yielding - {name}, {price}, {ppu}, {ounces}, {unit}")
 
                 yield{
                   "name": name,
@@ -153,19 +153,19 @@ class safewayScraper(scrapy.Spider):
         #Basically the website redirects us to the url and page_1_str, which isn't added to our database
         # So we trim that off so we can get the url in our database
         finish_url(self.conn,self.store_id,this_url)
-        print("finishing url - " + this_url + ", store_id: ", self.store_id)
+        self.logger.info("finishing url - " + this_url + ", store_id: ", self.store_id)
         # We only want requests that have the page= string in it because they have the groceries,
         # Also currently we're getting some urls in our database for locations that don't match our default_store_number
         # So filter those out too.
         next_url = get_next_url(self.cursor, 1,self.store_id,filter=f"{self.store_number}%page=")
         if next_url is None:
-            print ("Next url is none therefore we must be finished ! ")
+            self.logger.info ("Next url is none therefore we must be finished ! ")
             return
         else:
             next_request = create_unfiltered_parse_request(next_url,
                                                 self.parse,
                                                 EC.element_to_be_clickable((By.CSS_SELECTOR,'product-item-v2')))
-        print(f"got next_url - {next_url}")
+        self.logger.info(f"got next_url - {next_url}")
         yield next_request
 
     # @description collects and returns the ounces from the grocery
@@ -176,7 +176,7 @@ class safewayScraper(scrapy.Spider):
         ounces = 0
 
         if len(split) == 1:
-            print (f"No -'s found in {string} - not updating ounces")
+            self.logger.info (f"No -'s found in {string} - not updating ounces")
         elif len(split) == 2:
             weight = split[1]
             ounces = convert_to_ounces(weight)
@@ -190,7 +190,7 @@ class safewayScraper(scrapy.Spider):
                 quantity=1
             ounces = weight * quantity
         else:
-            print(f"Collect_ounces too many '-'s in string {string}")
+            self.logger.info(f"Collect_ounces too many '-'s in string {string}")
         return ounces
 
     # @description collects the units from the grocery
@@ -201,13 +201,13 @@ class safewayScraper(scrapy.Spider):
         ## i.e. Signature Care Hand Soap Clear Moisturizing - 7.5 Fl. Oz.
         #Also has the form `Name - <quantity>-<amount> <units>`
         ## i.e. SPF 50 - 2-9.1 Oz
-        #print (f"Working on string - {string}")
+        #self.logger.info (f"Working on string - {string}")
         split_off_name = string.split(' - ')
         if len(split_off_name) < 2 :
-            print(f"unable to collect units from {string}")
+            self.logger.info(f"unable to collect units from {string}")
             return ""
         unit_section = split_off_name[-1]
-        #print(f"unit-section - {unit_section}")
+        #self.logger.info(f"unit-section - {unit_section}")
         quantity=1
         if unit_section.find('-') != -1:
             # If theirs still a hyphen then we have a quantity to parse off first
@@ -220,7 +220,7 @@ class safewayScraper(scrapy.Spider):
         decimal_regex = "([\d]+[.]?[\d]*|[.\d]+)"
         complete_regex = decimal_regex+"(.*)"
         decimal_broken = re.findall(complete_regex,unit_section)
-        #print(f"collect_units, quantity - {quantity}, decimal - {decimal_broken}")
+        #self.logger.info(f"collect_units, quantity - {quantity}, decimal - {decimal_broken}")
         if len(decimal_broken) == 0:
             # if its in the Name - EA form
             # Just Use the EA as the units

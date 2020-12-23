@@ -46,7 +46,7 @@ class safewayUrlScraper(scrapy.Spider):
     # @param zipcode - string : zipcode of the location to change to
     # @param location - string : address of the location of the store to change to
     def change_location(self, zipcode, location):
-        print(f"changing location to {self.location}")
+        self.logger.info(f"changing location to {self.location}")
         change_button = self.driver.find_element_by_css_selector('#openFulfillmentModalButton')
         change_button.click()
         zip_input = self.driver.find_element_by_css_selector('[aria-labelledby="zipcode"]')
@@ -57,9 +57,9 @@ class safewayUrlScraper(scrapy.Spider):
 
         for store in stores:
             caption = store.find_element_by_css_selector('.caption').text
-            print (f"store - {store}, {caption}")
+            self.logger.info (f"store - {store}, {caption}")
             if location in caption:
-                print (f"found {location} in {caption}")
+                self.logger.info (f"found {location} in {caption}")
                 button = store.find_element_by_css_selector('[role="button"]')
                 button.click()
                 time.sleep(5)
@@ -67,7 +67,7 @@ class safewayUrlScraper(scrapy.Spider):
 
         url = self.driver.current_url
         self.store_number = str(re.findall(r'\d{4}',url)[0])
-        print(f"Setting store number to - {self.store_number}")
+        self.logger.info(f"Setting store number to - {self.store_number}")
 
     # @decription checks the location on the website and compares it with that on the scraper
     #             if its the same it continues, if not it will call change_location to change it
@@ -77,12 +77,12 @@ class safewayUrlScraper(scrapy.Spider):
     def check_location(self, response):
         self.driver=response.request.meta['driver']
         current_location = self.driver.find_element_by_css_selector('.reserve-nav__current-instore-text').text
-        print(f"current_location = {current_location} and it should be {self.location}")
+        self.logger.info(f"current_location = {current_location} and it should be {self.location}")
         if current_location != self.location:
-            print ("changing location")
+            self.logger.info ("changing location")
             self.change_location(self.zipcode,self.location)
         else:
-            print(f"current location is already {current_location} == {self.location}")
+            self.logger.info(f"current location is already {current_location} == {self.location}")
 
         meta_url = self.replace_store_number(response.url)
 
@@ -100,7 +100,7 @@ class safewayUrlScraper(scrapy.Spider):
     def replace_store_number(self,url):
         current_number = str(re.findall(r'[\d]+',url)[0])
         ret = url.replace(current_number,self.store_number)
-        print("replace_store_number: old_url - ", url, ", new store_number: ", self.store_number, ", ret: ", ret)
+        self.logger.info("replace_store_number: old_url - ", url, ", new store_number: ", self.store_number, ", ret: ", ret)
 
         return ret
 
@@ -113,10 +113,10 @@ class safewayUrlScraper(scrapy.Spider):
         section = response.css('[aria-current="location"] ::text').get()
         if section is not None:
             section = section.strip()
-        print("Inside scrape_urls")
+        self.logger.info("Inside scrape_urls")
         #TODO can probably infer some categories from location
         for mainGroup in mainGroups:
-            #print (f"Using mainGroup - {mainGroup}")
+            #self.logger.info (f"Using mainGroup - {mainGroup}")
             #It might be coming from here? it looks like the main categories are all having issues
             view_all = mainGroup.css('.text-uppercase.view-all-subcats ::attr(href)').get()
             view_all_url = self.base_url + view_all
@@ -124,7 +124,7 @@ class safewayUrlScraper(scrapy.Spider):
             section = mainGroup.css('.product-title.text-uppercase ::text').get()
             section = section.strip()
             category = lookup_category("",section,"")
-            print (f"view_all_url - {view_all_url}, section - {section}, category - {category}")
+            self.logger.info (f"view_all_url - {view_all_url}, section - {section}, category - {category}")
             store_url(self.conn,view_all_url,self.store_id, category,section,"")
 
         aisleCategories = response.css('a.aisle-category')
@@ -135,12 +135,12 @@ class safewayUrlScraper(scrapy.Spider):
             aisleUrl = self.replace_store_number(aisleUrl)
             subsection = aisleName
             category = lookup_category("",section,subsection)
-            print (f"found aisleCategory with section - {section}, subsection - {subsection} ")
+            self.logger.info (f"found aisleCategory with section - {section}, subsection - {subsection} ")
             store_url(self.conn,aisleUrl,self.store_id,category,section,subsection)
 
         siblingAisles = response.css('.siblingAisle')
         for siblingAisle in siblingAisles:
-            print (f"using siblingAisle - {siblingAisle}")
+            self.logger.info (f"using siblingAisle - {siblingAisle}")
             href = siblingAisle.css('::attr(href)').get()
             siblingAisleUrl = self.base_url + href
             siblingAisleUrl = self.replace_store_number(siblingAisleUrl)
@@ -149,13 +149,13 @@ class safewayUrlScraper(scrapy.Spider):
             subsection = siblingAisle.css('::text').get()
             subsection = subsection.strip()
             category = lookup_category("",section,subsection)
-            print(f"siblingAisle storing: {siblinAisleUrl}")
+            self.logger.info(f"siblingAisle storing: {siblinAisleUrl}")
             store_url(self.conn,siblingAisleUrl,self.store_id,category,section,subsection)
 #
         #check if it has a load-more button and then increment page number on it
         if response.css('.primary-btn.btn.btn-default.btn-secondary.bloom-load-button').get() is not None:
             path = response.css('[aria-current]:not(.menu-nav__sub-item) ::text').getall()
-            #print(f"path - {path} for url - {response.url}")
+            #self.logger.info(f"path - {path} for url - {response.url}")
             section = path[1]
             section = section.strip()
             subsection = path[-2]
@@ -163,7 +163,7 @@ class safewayUrlScraper(scrapy.Spider):
             category = lookup_category("",section,subsection)
             next_page_url=get_next_pagination(self.page_str,response.url)
             next_page_url = self.replace_store_number(next_page_url)
-            print (f'load-more-button. storing - {next_page_url}, section - {section}, subsection - {subsection}, category - {category}')
+            self.logger.info (f'load-more-button. storing - {next_page_url}, section - {section}, subsection - {subsection}, category - {category}')
             store_url(self.conn,next_page_url,self.store_id,category,section,subsection)
     # @description first scrapes the urls, then goes through and parses the groceries from the webpage
     # @param response - html response of the webpage
@@ -173,23 +173,23 @@ class safewayUrlScraper(scrapy.Spider):
         #Basically the website redirects us to the url and page_1_str, which isn't added to our database
         # So we trim that off so we can get the url in our database
         this_url = trim_url(response.url,page_1_str)
-        print (f"inside run for {this_url}, meta_url: {meta_url}")
+        self.logger.info (f"inside run for {this_url}, meta_url: {meta_url}")
         if meta_url != this_url:
-            print (f"meta_url: {meta_url} !=  response.url: {response.url}, therefore it must be invalid - skipping")
+            self.logger.info (f"meta_url: {meta_url} !=  response.url: {response.url}, therefore it must be invalid - skipping")
             this_url = meta_url
         else :
             self.scrape_urls(response)
 
         finish_url(self.conn,self.store_id,this_url,True)
-        print("finishing url - " + this_url)
+        self.logger.info("finishing url - " + this_url)
         next_url = get_next_url(self.cursor, 1, self.store_id,True)
         if next_url is None:
-            print ("Next url is none therefore we must be finished ! ")
+            self.logger.info ("Next url is none therefore we must be finished ! ")
             return
         else:
             next_request = create_unfiltered_parse_request(next_url,
                                                 self.run,
                                                 EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
-        print(f"got next_url - {next_url}")
+        self.logger.info(f"got next_url - {next_url}")
 
         yield next_request
