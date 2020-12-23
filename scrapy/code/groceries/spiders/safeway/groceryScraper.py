@@ -61,6 +61,11 @@ class safewayScraper(scrapy.Spider):
                 button.click()
                 time.sleep(5)
                 break
+
+        url = self.driver.current_url
+        self.store_number = str(re.findall(r'\d{4}',url)[0])
+        print(f"Setting store number to - {self.store_number}")
+
     # @decription checks the location on the website and compares it with that on the scraper
     #             if its the same it continues, if not it will call change_location to change it
     # @called is a callback via a yield function
@@ -149,14 +154,14 @@ class safewayScraper(scrapy.Spider):
         # So we trim that off so we can get the url in our database
         finish_url(self.conn,self.store_id,this_url)
         print("finishing url - " + this_url + ", store_id: ", self.store_id)
-        next_url = get_next_url(self.cursor, 1,self.store_id,filter="page=")
+        # We only want requests that have the page= string in it because they have the groceries,
+        # Also currently we're getting some urls in our database for locations that don't match our default_store_number
+        # So filter those out too.
+        next_url = get_next_url(self.cursor, 1,self.store_id,filter=f"{self.store_number}%page=")
         if next_url is None:
             print ("Next url is none therefore we must be finished ! ")
             return
         else:
-            #next_request = create_unfiltered_parse_request(next_url,
-            #                                    self.check_location,
-            #                                    EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
             next_request = create_unfiltered_parse_request(next_url,
                                                 self.parse,
                                                 EC.element_to_be_clickable((By.CSS_SELECTOR,'product-item-v2')))

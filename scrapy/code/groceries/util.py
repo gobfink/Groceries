@@ -216,7 +216,7 @@ def get_next_url(cursor, iteration, store_id=-1,scrape_urls=False,filter=""):
     #else:
     #    sql = f"SELECT url from urlTable WHERE Scraped=0 AND store_id={store_id} ORDER BY updated DESC LIMIT {iteration}"
     if filter != "":
-        sql = sql.replace("ORDER", f"LIKE '%{filter}%' ORDER")
+        sql = sql.replace("ORDER", f"AND Url LIKE '%{filter}%' ORDER")
     if store_id != -1:
         sql = sql.replace("WHERE", f"WHERE store_id={store_id} AND")
     if scrape_urls:
