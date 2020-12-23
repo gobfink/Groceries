@@ -89,7 +89,7 @@ class safewayScraper(scrapy.Spider):
                                                              EC.element_to_be_clickable((By.CSS_SELECTOR,'product-item-v2')))
                                                              #EC.element_to_be_clickable((By.CSS_SELECTOR,'.add-product [role="button"]')))
         else:
-            self.logger.info()
+            self.logger.info(f"{response.url} doesn't have page string")
             scrape_request = create_unfiltered_parse_request(response.url,
                                                              self.parse,
                                                              EC.element_to_be_clickable((By.CSS_SELECTOR,'#openFulfillmentModalButton')))
