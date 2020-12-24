@@ -94,6 +94,7 @@ def convert_to_ounces(weight):
     if weight is None:
         return 0
     ret = 0
+    weight = str(weight)
     weight.replace(' ', '')
     weight=weight.lower()
     quantity = 1
@@ -106,6 +107,7 @@ def convert_to_ounces(weight):
             quantity = 0
             weight = 0
     try:
+        weight = str(weight)
         if (weight.find("fl") != -1):
             #can't convert fluid ounces to regular ounces
             ret = 0
