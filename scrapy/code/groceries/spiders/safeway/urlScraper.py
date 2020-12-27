@@ -180,7 +180,7 @@ class safewayUrlScraper(scrapy.Spider):
         else :
             self.scrape_urls(response)
 
-        finish_url(self.conn,self.store_id,this_url,True)
+        finish_url(self.conn,self.store_id,this_url,scrape_urls=True)
         self.logger.info("finishing url - " + this_url)
         next_url = get_next_url(self.cursor, 1, self.store_id,True)
         if next_url is None:
