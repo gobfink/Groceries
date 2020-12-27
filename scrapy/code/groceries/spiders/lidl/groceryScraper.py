@@ -97,6 +97,10 @@ class lidlGroceryScraper(scrapy.Spider):
 
 
             metadata = get_url_metadata(self.cursor,url)
+            if metadata is None:
+                self.logger.debug(f"Metadata is none for {url}")
+                metadata = ["",""]
+
             section = metadata[0]
             subsection = metadata[1]
             self.logger.info("subpage - scraping " + url + ", from section - "+section)
