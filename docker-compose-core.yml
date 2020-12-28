@@ -1,0 +1,63 @@
+version: '3.5'
+services:
+  splash-middleware:
+     hostname: splash-middleware
+     image: scrapinghub/splash
+     command: --disable-private-mode
+     ports:
+     - "5023:5023"
+     - "8050:8050"
+     - "8051:8051"
+     networks:
+     - backend
+  db:
+    hostname: db
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    networks:
+      - backend
+    environment:
+      MYSQL_DATABASE: db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: example
+      MYSQL_ROOT_PASSWORD: example
+    volumes:
+      #- ./schema:/docker-entrypopint-initdb.d
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+  adminer:
+    hostname: adminer
+    image: adminer
+    restart: unless-stopped
+    networks:
+      - backend
+    depends_on:
+      - db
+    ports:
+      - "8081:8080"
+  flask:
+    hostname: flask
+    build: './flask/'
+    restart: unless-stopped
+    volumes:
+      - ./flask/code:/code
+      - ./upload:/code/app/upload
+    ports:
+      - "8080:80"
+    networks:
+      - backend
+      - frontend
+    environment:
+      FLASK_CONFIG: development
+      FLASK_APP: run.py
+    depends_on:
+      - db
+networks:
+  frontend:
+  backend:
+
+volumes:
+   mysql-data:
+
