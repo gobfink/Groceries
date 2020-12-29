@@ -1,0 +1,19 @@
+version: '3.5'
+services:
+  wegmans:
+     volumes:
+     - ./scrapy/code:/code
+     build: 
+       context: scrapy/
+       dockerfile: Dockerfile.selenium.runtime
+       shm_size: '3gb'
+     hostname: wegmans-scrapy
+     environment: 
+        - "PYTHONPATH=/code/groceries"
+     networks:
+     - backend
+     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+     working_dir: /code/groceries/spiders/wegmans
+     restart: unless-stopped
+networks:
+  backend:
