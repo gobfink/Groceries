@@ -16,6 +16,8 @@
 {% extends "base.html" %}
 {% block title %}Groceries{% endblock %}
 {% block body %}
+{% set firstnum = pagenum * 25 - 24 %}
+{% set lastnum = pagenum * 25 %}
 <div class="content-section">
   <div class="outer">
     <div class="middle">
@@ -28,6 +30,33 @@
           <hr class="intro-divider">
           <div class="center">
             <table width="100%" class="table table-striped table-bordered">
+                <thead>
+                    {% if sort_by == 'id' %}
+                    <th>ID <a href="?page={{ pagenum }}&sort=-id">^</a></th>
+                    {% else %}
+                    <th>ID <a href="?page={{ pagenum }}&sort=id">v</a></th>
+                    {% endif %}
+                    {% if sort_by == 'name' %}
+                    <th>Name <a href="?page={{ pagenum }}&sort=-name">^</a></th>
+                    {% else %}
+                    <th>Name <a href="?page={{ pagenum }}&sort=name">v</a></th>
+                    {% endif %}
+                    {% if sort_by == 'sec' %}
+                    <th>Section <a href="?page={{ pagenum }}&sort=-sec">^</a></th>
+                    {% else %}
+                    <th>Section <a href="?page={{ pagenum }}&sort=sec">v</a></th>
+                    {% endif %}
+                    {% if sort_by == 'ssec' %}
+                    <th>Sub Section <a href="?page={{ pagenum }}&sort=-ssec">^</a></th>
+                    {% else %}
+                    <th>Sub Section <a href="?page={{ pagenum }}&sort=ssec">v</a></th>
+                    {% endif %}
+                    {% if sort_by == 'price' %}
+                    <th>Price <a href="?page={{ pagenum }}&sort=-price">^</a></th>
+                    {% else %}
+                    <th>Price <a href="?page={{ pagenum }}&sort=price">v</a></th>
+                    {% endif %}
+                </thead>
                 <tbody>
                 {% for grocery in groceries %}
                 <tr>
@@ -50,6 +79,9 @@
                     {% endif %}
                     </td>
                 </tr> 
+                <tr>
+                    <td colspan="5">Records {{ firstnum }} - {{ lastnum }} of {{ totalcount }} (Page {{ pagenum }})</td>
+                </tr>
               </tbody>
             </table>
           </div>
