@@ -70,12 +70,12 @@
                 <tr>
                     <td colspan="2">
                     {% if prev_url %}
-                       <a href="{{ prev_url }}"><-Prev</a>
+                       <a href="{{ prev_url }}&sort={{ sort_by }}"><-Prev</a>
                     {% endif %}
                     </td>
                     <td colspan="3">
                     {% if next_url %}
-                       <a href="{{ next_url }}">Next-></a>
+                       <a href="{{ next_url }}&sort={{ sort_by }}">Next-></a>
                     {% endif %}
                     </td>
                 </tr> 
