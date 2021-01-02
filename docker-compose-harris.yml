@@ -1,0 +1,45 @@
+version: '3.5'
+services:
+  harris-teeter-urls:
+     healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh", "harris-teeter", "url"]
+       interval: 30s
+       start_period: 90s
+       retries: 1
+     volumes:
+     - ./scrapy/code:/code
+     build: 
+       context: scrapy/
+       dockerfile: Dockerfile.selenium.runtime
+       shm_size: '8gb'
+     hostname: wegmans-scrapy
+     environment: 
+        - "PYTHONPATH=/code/groceries"
+     networks:
+     - backend
+     entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
+     working_dir: /code/groceries/spiders/harris-teeter
+     restart: unless-stopped
+  harris-teeter:
+     healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh", "harris-teeter", "groceries"]
+       interval: 30s
+       start_period: 90s
+       retries: 1
+    #TODO add a health check that counts if harris-teeter groceries are going up
+     volumes:
+     - ./scrapy/code:/code
+     build: 
+       context: scrapy/
+       dockerfile: Dockerfile.selenium.runtime
+       shm_size: '6gb'
+     hostname: harristeeter-scrapy
+     environment: 
+        - "PYTHONPATH=/code/groceries"
+     networks:
+     - backend
+     entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
+     working_dir: /code/groceries/spiders/harris-teeter
+     restart: unless-stopped
+networks:
+  backend:
