@@ -1,0 +1,18 @@
+version: '3.5'
+services:
+  walmart:
+    volumes:
+    - ./scrapy/code:/code
+    build: 
+      context: scrapy/
+      dockerfile: Dockerfile.runtime
+    hostname: walmart-scrapy
+    networks:
+    - backend
+    working_dir: /code/groceries/spiders/walmart
+    entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+    environment:
+      PYTHONPATH: /code/groceries/
+    restart: unless-stopped
+networks:
+  backend:

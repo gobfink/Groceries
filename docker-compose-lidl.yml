@@ -1,0 +1,56 @@
+version: '3.5'
+services:
+  lidl-urls:
+    healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh", "lidl", "url"]
+       interval: 30s
+       start_period: 90s
+       retries: 1
+    volumes:
+    - ./scrapy/code:/code
+    build:
+      context: scrapy/
+      dockerfile: Dockerfile.runtime
+    hostname: lidl-urls
+    networks:
+      - backend
+    working_dir: /code/groceries/spiders/lidl
+    entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
+    environment:
+      PYTHONPATH: /code/groceries/
+    restart: unless-stopped
+  lidl-groceries:
+    healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh", "lidl", "groceries"]
+       interval: 30s
+       start_period: 90s
+       retries: 1
+    volumes:
+    - ./scrapy/code:/code
+    build:
+      context: scrapy/
+      dockerfile: Dockerfile.runtime
+    hostname: lidl-groceries
+    networks:
+      - backend
+    working_dir: /code/groceries/spiders/lidl
+    entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
+    environment:
+      PYTHONPATH: /code/groceries/
+    restart: unless-stopped
+  lidl:
+    volumes:
+    - ./scrapy/code:/code
+    build: 
+      context: scrapy/
+      dockerfile: Dockerfile.runtime
+    hostname: lidl-scrapy
+    networks:
+    - backend
+    working_dir: /code/groceries/spiders/lidl
+    entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+    environment:
+      PYTHONPATH: /code/groceries/
+    restart: unless-stopped
+networks:
+  backend:
