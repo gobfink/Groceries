@@ -10,6 +10,8 @@ from .forms import GroceryForm, GrocerySearchForm
 
 from . import home
 
+from ..Core import *
+
 
 def check_admin():
     """
@@ -26,6 +28,22 @@ def homepage():
     """
 
     return render_template('home/index.html', title="Welcome")
+
+@home.route('/stats', methods=['GET', 'POST'])
+def stats():
+    """
+    Statistical Page
+    """
+    sql='select count(*) as groceryCnt, st.name from groceryTable as gt left join storeTable as st on st.id = gt.store_id group by st.name;'
+    grocerystats = executeSQLm(sql)
+    sql='select count(*) as urlCnt, st.name from urlTable as gt left join storeTable as st on st.id = gt.store_id group by st.name;'
+    urlstats = executeSQLm(sql)
+    sql='select count(*) as groceryCnt, st.name, gt.section, gt.subsection from groceryTable as gt left join storeTable as st on st.id = gt.store_id group by st.name, gt.section,gt.subsection order by st.name, gt.section, gt.subsection'
+    detailstats = executeSQLm(sql)
+    return render_template('home/stats/stats.html',
+                       urlstats=urlstats,
+                       detailstats=detailstats,
+                       grocerystats=grocerystats)
 
 
 @home.route('/groceries', methods=['GET', 'POST'])

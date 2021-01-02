@@ -1,0 +1,84 @@
+<!-- app/templates/home/stats/stats.html -->
+
+{% macro render_field(field) %}
+    <dt>{{ field.label }}
+    <dd>{{ field(**kwargs)|safe }}
+    {% if field.errors %}
+        <ul class=errors>
+        {% for error in field.errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    </dd>
+{% endmacro %}
+
+{% import "bootstrap/utils.html" as utils %}
+{% extends "base.html" %}
+{% block title %}Statistics{% endblock %}
+{% block body %}
+<div class="content-section">
+  <div class="outer">
+    <div class="middle">
+      <div class="inner">
+        <br/>
+        {{ utils.flashed_messages() }}
+        <br/>
+        <h1 style="text-align:center;">Statistics</h1>
+        <div class="center">
+          <table>
+            <tr valign="top">
+              <td width="30%">
+                <table>
+                  <tr>
+                    <th>Store</th>
+                    <th># Groceries</th>
+                  </tr>
+                {% for stat in grocerystats %}
+                  <tr>
+                    <td>{{ stat.name }}</td>
+                    <td align="right">{{ stat.groceryCnt | numberFormat }}</td>
+                  </tr>
+                {% endfor %}
+                </table>
+              </td>
+              <td width="30%">
+                <table>
+                  <tr>
+                    <th>Store</th>
+                    <th># URLs</th>
+                  </tr>
+                {% for stat in urlstats %}
+                  <tr>
+                    <td>{{ stat.name }}</td>
+                    <td align="right">{{ stat.urlCnt | numberFormat }}</td>
+                  </tr>
+                {% endfor %}
+                </table>
+              </td>
+              <td width="30%">
+                <table>
+                  <tr>
+                    <th>Store</th>
+                    <th>Section</th>
+                    <th>Sub Section</th>
+                    <th># Groceries</th>
+                  </tr>
+                {% for stat in detailstats %}
+                  <tr>
+                    <td>{{ stat.name }}</td>
+                    <td>{{ stat.section }}</td>
+                    <td>{{ stat.subsection }}</td>
+                    <td>{{ stat.groceryCnt }}</td>
+                  </tr>
+                {% endfor %}
+                </table>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
