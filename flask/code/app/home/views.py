@@ -29,6 +29,7 @@ def homepage():
 
     return render_template('home/index.html', title="Welcome")
 
+
 @home.route('/stats', methods=['GET', 'POST'])
 def stats():
     """
@@ -45,55 +46,75 @@ def stats():
                        detailstats=detailstats,
                        grocerystats=grocerystats)
 
-
 @home.route('/groceries', methods=['GET', 'POST'])
 def groceries():
     """
     Display the different groceries
     """
-    grocery_list = []
+    ROWS_PER_PAGE = 25
+    page = request.args.get('page', 1, type=int)
+    
+    # Sort Section
+    sort_by = request.args.get("sort")
+    orderby=db_Grocery.id.asc() # Default ordering is by ID
+    if sort_by != None:
+       if sort_by == 'name':
+          orderby=db_Grocery.name.asc()
+       if sort_by == '-name':
+          orderby=db_Grocery.name.desc()
+       if sort_by == 'id':
+          orderby=db_Grocery.id.asc()
+       if sort_by == '-id':
+          orderby=db_Grocery.id.desc()
+       if sort_by == 'sec':
+          orderby=db_Grocery.section.asc()
+       if sort_by == '-sec':
+          orderby=db_Grocery.section.desc()
+       if sort_by == 'ssec':
+          orderby=db_Grocery.subsection.asc()
+       if sort_by == '-ssec':
+          orderby=db_Grocery.subsection.desc()
+       if sort_by == 'price':
+          orderby=db_Grocery.price.asc()
+       if sort_by == '-price':
+          orderby=db_Grocery.price.desc()
+       if sort_by == 'store':
+          orderby=db_store.name.asc()
+       if sort_by == '-store':
+          orderby=db_store.name.desc()
+    else:
+       sort_by = 'id'
+    
+    # Main cursor build
+    groceries = db_Grocery.query
 
-    columns_to_display = ['name', 'section', 'subsection', 'price', 'ounces', 'reported_price_per_unit', 'price_density', 'brand', 'date',
-                          'store', 'url']
-    grocery_search = GrocerySearchForm(request.form)
+    #Filter section
+    grocery_name = request.args.get("grocery_name")
+    if grocery_name != None:
+       groceries = groceries.filter(db_Grocery.name.like('%' + grocery_name + '%'))
+    else:
+       grocery_name=""
+    store_name = request.args.get("store_name")
+    if store_name != None:
+       groceries = groceries.filter(db_store.name.like('%' + store_name + '%'))
+    else:
+       store_name=""
+    #groceries = groceries.filter(db_Grocery.section.like('%Baby%'))
+    #groceries = groceries.filter(db_store.name.like('%wegmans%'))
 
-    # Create a choice list of tuples from the columns_to_display
-    grocery_search.select.choices = [(c, c) for c in columns_to_display]
+    groceries = groceries.join(db_store, db_Grocery.store)
+    groceries = groceries.order_by(orderby)
+    totalcount = groceries.count()
+    groceries = groceries.paginate(page,ROWS_PER_PAGE, False)
 
-    q_groceries = db_Grocery.query.all()
-    search_query = ""
-    selected_choice = ""
-
-    if request.method == 'POST':
-        search_query = request.form["search"]
-        selected_choice = request.form["select"]
-
-    # flash(q_groceries)
-
-    # Convert sqlalchemy model into a dictionary so that jinja2 html can parse it easier
-    # TODO I bet the performance here is going to be awful once we start adding allot of groceries
-    for grocery in q_groceries:
-        # Do all of the direct fields first
-        raw = grocery.__dict__
-        # Manually add all backrefs to the raw dict
-        raw['store'] = grocery.store.name
-
-        fields = {field: raw[field] for field in columns_to_display}
-        if search_query:
-            if search_query in str(raw[selected_choice]):
-                grocery_list.append(fields)
-        else:
-            grocery_list.append(fields)
-
-    # flash(grocery_list)
-
-    number_of_groceries = len(q_groceries)
-    groceries_showing = len(grocery_list)
-
+    next_url = url_for('home.groceries', page=groceries.next_num) if groceries.has_next else None
+    prev_url = url_for('home.groceries', page=groceries.prev_num) if groceries.has_prev else None
     return render_template('home/groceries/groceries.html',
-                           groceries_queried=q_groceries,
-                           column_titles=columns_to_display,
-                           totalcount=number_of_groceries,
-                           subcount=groceries_showing,
-                           search_form=grocery_search,
-                           g_list=grocery_list)
+                           groceries=groceries.items,
+                           next_url=next_url,
+                           prev_url=prev_url,
+                           sort_by=sort_by,
+                           grocery_name=grocery_name,
+                           store_name=store_name,
+                           pagenum=page,
+                           totalcount=totalcount)
