@@ -58,9 +58,12 @@ class db_Urls(db.Model):
     hits = db.Column(db.Integer)
     store_id = db.Column(db.Integer, db.ForeignKey('storeTable.id'))
     scraped = db.Column(db.Integer)
+    scraped_urls = db.Column(db.Integer)
     category = db.Column(db.String(50))
     section = db.Column(db.String(50))
     subsection = db.Column(db.String(50))
+    grocery_quantity = db.Column(db.Integer)
+
     #TODO makesure timestamp is setup to change on update
 
 
