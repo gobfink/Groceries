@@ -40,12 +40,35 @@
                     <td>Search</td>
                     <td><input type="text" name="grocery_name" value="{{ grocery_name }}"></td>
                     <td>
-                      <select class="" name="store_name">
-                          {% for store in storelist %}
-                            {% if store[0] == store_name %}
-                            <option value="{{ store[0] }}" selected>{{ store[0] }}</option>
+                      <select class="" name="section">
+                          {% for cursection in sectionlist %}
+                            {% if cursection == section %}
+                            <option value="{{ cursection }}" selected>{{ cursection }}</option>
                             {% else %}
-                            <option value="{{ store[0] }}">{{ store[0] }}</option>
+                            <option value="{{ cursection }}">{{ cursection }}</option>
+                            {% endif %}
+                          {% endfor %}
+                      </select>
+                    </td>
+                    <td>
+                      <select class="" name="subsection">
+                          {% for cursubsection in subsectionlist %}
+                            {% if cursubsection == subsection %}
+                            <option value="{{ cursubsection }}" selected>{{ cursubsection }}</option>
+                            {% else %}
+                            <option value="{{ cursubsection }}">{{ cursubsection }}</option>
+                            {% endif %}
+                          {% endfor %}
+                      </select>
+                    </td>
+                    <td>
+                      <select class="" name="store_name">
+                            <option value=""></option>
+                          {% for store in storelist %}
+                            {% if store == store_name %}
+                            <option value="{{ store }}" selected>{{ store }}</option>
+                            {% else %}
+                            <option value="{{ store }}">{{ store }}</option>
                             {% endif %}
                           {% endfor %}
                       </select>
@@ -55,6 +78,8 @@
                  <tr>
                     <td>&nbsp;</td>
                     <td><span style="color:red;font-size:10px;font-style:italic;">Grocery Name</span></td>
+                    <td><span style="color:red;font-size:10px;font-style:italic;">Section</span></td>
+                    <td><span style="color:red;font-size:10px;font-style:italic;">Sub Section</span></td>
                     <td><span style="color:red;font-size:10px;font-style:italic;">Store Name</span></td>
                     <td>&nbsp;</td>
                  </tr>
@@ -66,34 +91,34 @@
             <table width="100%" class="table table-striped table-bordered">
                 <thead>
                     {% if sort_by == 'id' %}
-                    <th>ID <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-id">^</a></th>
+                    <th>ID <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-id">^</a></th>
                     {% else %}
-                    <th>ID <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=id">v</a></th>
+                    <th>ID <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=id">v</a></th>
                     {% endif %}
                     {% if sort_by == 'name' %}
-                    <th>Name <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-name">^</a></th>
+                    <th>Name <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-name">^</a></th>
                     {% else %}
-                    <th>Name <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=name">v</a></th>
+                    <th>Name <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=name">v</a></th>
                     {% endif %}
                     {% if sort_by == 'sec' %}
-                    <th>Section <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-sec">^</a></th>
+                    <th>Section <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-sec">^</a></th>
                     {% else %}
-                    <th>Section <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=sec">v</a></th>
+                    <th>Section <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=sec">v</a></th>
                     {% endif %}
                     {% if sort_by == 'ssec' %}
-                    <th>Sub Section <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-ssec">^</a></th>
+                    <th>Sub Section <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-ssec">^</a></th>
                     {% else %}
-                    <th>Sub Section <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=ssec">v</a></th>
+                    <th>Sub Section <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=ssec">v</a></th>
                     {% endif %}
                     {% if sort_by == 'price' %}
-                    <th>Price <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-price">^</a></th>
+                    <th>Price <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-price">^</a></th>
                     {% else %}
-                    <th>Price <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=price">v</a></th>
+                    <th>Price <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=price">v</a></th>
                     {% endif %}
                     {% if sort_by == 'store' %}
-                    <th>Store <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-store">^</a></th>
+                    <th>Store <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=-store">^</a></th>
                     {% else %}
-                    <th>Store <a href="?page={{ pagenum }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=store">v</a></th>
+                    <th>Store <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=store">v</a></th>
                     {% endif %}
                 </thead>
                 <tbody>
@@ -110,12 +135,12 @@
                 <tr>
                     <td colspan="2">
                     {% if prev_url %}
-                       <a href="{{ prev_url }}&store_name={{ store_name }}&grocery_name={{ grocery_name }}&sort={{ sort_by }}"><-Prev</a>
+                       <a href="{{ prev_url }}&subsection={{ subsection }}&section={{ section }}&store_name={{ store_name }}&grocery_name={{ grocery_name }}&sort={{ sort_by }}"><-Prev</a>
                     {% endif %}
                     </td>
                     <td colspan="3">
                     {% if next_url %}
-                       <a href="{{ next_url }}&store_name={{ store_name }}&grocery_name={{ grocery_name }}&sort={{ sort_by }}">Next-></a>
+                       <a href="{{ next_url }}&subsection={{ subsection }}&section={{ section }}&store_name={{ store_name }}&grocery_name={{ grocery_name }}&sort={{ sort_by }}">Next-></a>
                     {% endif %}
                     </td>
                 </tr>
