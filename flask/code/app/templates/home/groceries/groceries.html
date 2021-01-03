@@ -39,7 +39,17 @@
                  <tr>
                     <td>Search</td>
                     <td><input type="text" name="grocery_name" value="{{ grocery_name }}"></td>
-                    <td><input type="text" name="store_name" value="{{ store_name }}"></td>
+                    <td>
+                      <select class="" name="store_name">
+                          {% for store in storelist %}
+                            {% if store[0] == store_name %}
+                            <option value="{{ store[0] }}" selected>{{ store[0] }}</option>
+                            {% else %}
+                            <option value="{{ store[0] }}">{{ store[0] }}</option>
+                            {% endif %}
+                          {% endfor %}
+                      </select>
+                    </td>
                     <td><input type="submit" name="submit" value="Submit"></td>
                  </tr>
                  <tr>
@@ -108,7 +118,7 @@
                        <a href="{{ next_url }}&store_name={{ store_name }}&grocery_name={{ grocery_name }}&sort={{ sort_by }}">Next-></a>
                     {% endif %}
                     </td>
-                </tr> 
+                </tr>
                 <tr>
                     <td colspan="5">Records {{ firstnum }} - {{ lastnum }} of {{ totalcount }} (Page {{ pagenum }})</td>
                 </tr>

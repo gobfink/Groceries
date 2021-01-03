@@ -53,7 +53,7 @@ def groceries():
     """
     ROWS_PER_PAGE = 25
     page = request.args.get('page', 1, type=int)
-    
+
     # Sort Section
     sort_by = request.args.get("sort")
     orderby=db_Grocery.id.asc() # Default ordering is by ID
@@ -84,7 +84,7 @@ def groceries():
           orderby=db_store.name.desc()
     else:
        sort_by = 'id'
-    
+
     # Main cursor build
     groceries = db_Grocery.query
 
@@ -107,6 +107,12 @@ def groceries():
     totalcount = groceries.count()
     groceries = groceries.paginate(page,ROWS_PER_PAGE, False)
 
+    # Get store names for the store pick list
+    sql='select distinct st.name from groceryTable as gt '
+    sql+='left join storeTable as st on gt.store_id = st.id '
+    sql+='order by st.name'
+    storelist=executeSQLm(sql)
+
     next_url = url_for('home.groceries', page=groceries.next_num) if groceries.has_next else None
     prev_url = url_for('home.groceries', page=groceries.prev_num) if groceries.has_prev else None
     return render_template('home/groceries/groceries.html',
@@ -116,5 +122,6 @@ def groceries():
                            sort_by=sort_by,
                            grocery_name=grocery_name,
                            store_name=store_name,
+                           storelist = storelist,
                            pagenum=page,
                            totalcount=totalcount)
