@@ -99,19 +99,25 @@ def groceries():
        groceries = groceries.filter(db_store.name.like('%' + store_name + '%'))
     else:
        store_name=""
-    #groceries = groceries.filter(db_Grocery.section.like('%Baby%'))
-    #groceries = groceries.filter(db_store.name.like('%wegmans%'))
+    section = request.args.get("section")
+    if section != None:
+       groceries = groceries.filter(db_Grocery.section.like('%' + section + '%'))
+    else:
+       section=""
+    subsection = request.args.get("subsection")
+    if subsection != None:
+       groceries = groceries.filter(db_Grocery.subsection.like('%' + subsection + '%'))
+    else:
+       subsection=""
 
     groceries = groceries.join(db_store, db_Grocery.store)
     groceries = groceries.order_by(orderby)
     totalcount = groceries.count()
     groceries = groceries.paginate(page,ROWS_PER_PAGE, False)
 
-    # Get store names for the store pick list
-    sql='select distinct st.name from groceryTable as gt '
-    sql+='left join storeTable as st on gt.store_id = st.id '
-    sql+='order by st.name'
-    storelist=executeSQLm(sql)
+    storelist=getStores()
+    sectionlist=getSections()
+    subsectionlist=getSubSections()
 
     next_url = url_for('home.groceries', page=groceries.next_num) if groceries.has_next else None
     prev_url = url_for('home.groceries', page=groceries.prev_num) if groceries.has_prev else None
@@ -122,6 +128,10 @@ def groceries():
                            sort_by=sort_by,
                            grocery_name=grocery_name,
                            store_name=store_name,
+                           section=section,
+                           subsection=subsection,
                            storelist = storelist,
+                           sectionlist = sectionlist,
+                           subsectionlist = subsectionlist,
                            pagenum=page,
                            totalcount=totalcount)
