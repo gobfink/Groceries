@@ -59,57 +59,84 @@ def groceries():
     orderby=db_Grocery.id.asc() # Default ordering is by ID
     if sort_by != None:
        if sort_by == 'name':
+          sorttext = 'grocery name'
           orderby=db_Grocery.name.asc()
        if sort_by == '-name':
+          sorttext = 'grocery name, descending'
           orderby=db_Grocery.name.desc()
        if sort_by == 'id':
+          sorttext = 'ID'
           orderby=db_Grocery.id.asc()
        if sort_by == '-id':
+          sorttext = 'ID, descending'
           orderby=db_Grocery.id.desc()
        if sort_by == 'sec':
+          sorttext = 'Section'
           orderby=db_Grocery.section.asc()
        if sort_by == '-sec':
+          sorttext = 'Section, descending'
           orderby=db_Grocery.section.desc()
        if sort_by == 'ssec':
+          sorttext = 'Sub Section'
           orderby=db_Grocery.subsection.asc()
        if sort_by == '-ssec':
+          sorttext = 'Sub Section, descending'
           orderby=db_Grocery.subsection.desc()
        if sort_by == 'price':
+          sorttext = 'Price'
           orderby=db_Grocery.price.asc()
        if sort_by == '-price':
+          sorttext = 'Price, descending'
           orderby=db_Grocery.price.desc()
        if sort_by == 'store':
+          sorttext = 'Store'
           orderby=db_store.name.asc()
        if sort_by == '-store':
+          sorttext = 'Store, descending'
           orderby=db_store.name.desc()
     else:
+       sorttext = 'ID'
        sort_by = 'id'
 
     # Main cursor build
     groceries = db_Grocery.query
 
+    filtertext = ''
+    sepStr = ''
+
     #Filter section
     grocery_name = request.args.get("grocery_name")
-    if grocery_name != None:
+    if grocery_name != None and len(grocery_name) > 0:
+       filtertext += sepStr + 'grocery name like ' + "'" + grocery_name + "'"
+       sepStr = ' and '
        groceries = groceries.filter(db_Grocery.name.like('%' + grocery_name + '%'))
     else:
        grocery_name=""
     store_name = request.args.get("store_name")
-    if store_name != None:
+    if store_name != None and len(store_name) > 0:
+       filtertext += sepStr + 'store name like ' + "'" + store_name + "'"
+       sepStr = ' and '
        groceries = groceries.filter(db_store.name.like('%' + store_name + '%'))
     else:
        store_name=""
     section = request.args.get("section")
-    if section != None:
+    if section != None and len(section) > 0:
+       filtertext += sepStr + 'section like ' + "'" + section + "'"
+       sepStr = ' and '
        groceries = groceries.filter(db_Grocery.section.like('%' + section + '%'))
     else:
        section=""
     subsection = request.args.get("subsection")
-    if subsection != None:
+    if subsection != None and len(subsection) > 0:
+       filtertext += sepStr + 'sub section like ' + "'" + subsection + "'"
+       sepStr = ' and '
        groceries = groceries.filter(db_Grocery.subsection.like('%' + subsection + '%'))
     else:
        subsection=""
-
+    if filtertext == '':
+        filtertext = 'All Groceries'
+    else:
+        filtertext = 'Groceries where ' + filtertext
     groceries = groceries.join(db_store, db_Grocery.store)
     groceries = groceries.order_by(orderby)
     totalcount = groceries.count()
@@ -121,6 +148,8 @@ def groceries():
 
     next_url = url_for('home.groceries', page=groceries.next_num) if groceries.has_next else None
     prev_url = url_for('home.groceries', page=groceries.prev_num) if groceries.has_prev else None
+
+    feedback = filtertext + ', sorted by ' + sorttext
     return render_template('home/groceries/groceries.html',
                            groceries=groceries.items,
                            next_url=next_url,
@@ -133,5 +162,6 @@ def groceries():
                            storelist = storelist,
                            sectionlist = sectionlist,
                            subsectionlist = subsectionlist,
+                           feedback = feedback,
                            pagenum=page,
                            totalcount=totalcount)
