@@ -149,7 +149,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="5">Records {{ firstnum }} - {{ lastnum }} of {{ totalcount }} (Page {{ pagenum }})</td>
+                    <td colspan="5">Records {{ firstnum | numberFormat }} - {{ lastnum | numberFormat }} of {{ totalcount  | numberFormat }} (Page {{ pagenum  | numberFormat}})</td>
                 </tr>
               </tbody>
             </table>
