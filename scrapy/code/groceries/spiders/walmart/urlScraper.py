@@ -62,6 +62,10 @@ class walmartUrlSpider(scrapy.Spider):
         if is_url_scraped(self.cursor, url, scrape_urls=True):
             next_url = get_next_url(self.cursor, 1, store_id=self.store_id,
                                     scrape_urls=True, filter="aisle=")
+            if next_url is None:
+                self.logger.debug(
+                    "Next_url is None therefore we must be finished!")
+                return
             request = create_parse_request(next_url,
                                            self.handle_pagination,
                                            EC.element_to_be_clickable(
@@ -101,6 +105,10 @@ class walmartUrlSpider(scrapy.Spider):
         finish_url(self.conn, self.store_id, start_url, scrape_urls=True)
         next_url = get_next_url(self.cursor, 1, store_id=self.store_id,
                                 scrape_urls=True, filter="aisle=")
+        if next_url is None:
+            self.logger.debug(
+                "Next_url is None therefore we must be finished!")
+            return
 
         self.next_url = next_url
         pagination_request = create_parse_request(next_url,
@@ -132,6 +140,10 @@ class walmartUrlSpider(scrapy.Spider):
         finish_url(self.conn, self.store_id, url, scrape_urls=True)
         next_url = get_next_url(self.cursor, 1, store_id=self.store_id,
                                 scrape_urls=True, filter="aisle=")
+        if next_url is None:
+            self.logger.debug(
+                "Next_url is None therefore we must be finished!")
+            return
         request = create_parse_request(next_url,
                                        self.handle_pagination,
                                        EC.element_to_be_clickable(
