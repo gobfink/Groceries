@@ -54,6 +54,11 @@ def groceries():
     ROWS_PER_PAGE = 25
     page = request.args.get('page', 1, type=int)
 
+    # Check if filtering was added and if it is reset page
+    submitted = request.args.get("submit")
+    if submitted != None:
+       page = 1
+
     # Sort Section
     sort_by = request.args.get("sort")
     orderby=db_Grocery.id.asc() # Default ordering is by ID
@@ -90,7 +95,7 @@ def groceries():
           orderby=db_Grocery.price.desc()
        if sort_by == 'store':
           sorttext = 'Store'
-          orderby=db_store.name.asc()
+          orderby=db_store.name
        if sort_by == '-store':
           sorttext = 'Store, descending'
           orderby=db_store.name.desc()
