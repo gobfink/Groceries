@@ -67,11 +67,11 @@ class walmartUrlSpider(scrapy.Spider):
                                            EC.element_to_be_clickable(
                                                                      (By.CSS_SELECTOR, '[aria-current="page"]')),
                                            meta_url=next_url)
-        yield walk_menu_request
-        # self.walk_menu(response)
+        yield request
 
     def walk_menu(self, response):
         self.logger.info('Inside walk_menu')
+        start_url = self.driver.current_url
         menu_button = self.driver.find_element_by_css_selector(
             '[data-automation-id="NavigationBtn"]')
         menu_button.click()
@@ -98,6 +98,7 @@ class walmartUrlSpider(scrapy.Spider):
                 store_url(self.conn, url, self.store_id,
                           category, department_name, aisle_name)
 
+        finish_url(self.conn, self.store_id, start_url, scrape_urls=True)
         next_url = get_next_url(self.cursor, 1, store_id=self.store_id,
                                 scrape_urls=True, filter="aisle=")
 

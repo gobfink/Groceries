@@ -319,11 +319,12 @@ def find_store_id(cursor, store_name, location):
 
 
 def is_url_scraped(cursor, url, scrape_urls=False):
-    scraped_query = f"SELECT scraped FROM urlTable where url='{store_name}'"
+    scraped_query = f"SELECT scraped FROM urlTable where url='{url}'"
     if scrape_urls:
-        scraped_query.replace("scraped", "scraped_urls")
+        scraped_query = scraped_query.replace("scraped", "scraped_urls")
     cursor.execute(scraped_query)
     scraped = cursor.fetchone()[0]
+    print(f"is_url_scraped for query: {scraped_query}, returned: {scraped}")
     return scraped == 1
 
 # @description determines if the section is in the store_id
