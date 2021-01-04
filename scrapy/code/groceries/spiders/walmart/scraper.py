@@ -5,7 +5,9 @@ from scrapy.shell import inspect_response
 from scrapy_splash import SplashRequest
 import re
 
-from util import read_script, parse_float, lookup_category, get_next_url, get_url_metadata, store_url, clean_string, handle_none, finish_url, get_next_pagination
+from util import (read_script, parse_float, lookup_category, get_next_url, 
+                  get_url_metadata, store_url, clean_string, handle_none,
+                  finish_url, get_next_pagination)
 
 def convert_ppu(incoming_ppu):
     if not incoming_ppu:
@@ -101,7 +103,7 @@ class walmartSpider(scrapy.Spider):
         next_url=get_next_url(self.cursor, 1)
         if next_url is None:
             print("No more urls to parse finishing")
-        else:    
+        else:
             yield SplashRequest(url,
                             self.parse,
                             endpoint='render.html',
@@ -122,7 +124,7 @@ class walmartSpider(scrapy.Spider):
         metadata=get_url_metadata(self.cursor,url)
         section=metadata[1]
         subsection=metadata[2]
-        
+
         next_page=response.css(NEXT_BUTTON).get()
 
         if next_page is not None:
