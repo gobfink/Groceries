@@ -17,7 +17,10 @@ import re
 
 from util import (read_script, parse_float, lookup_category, get_next_url,
                   get_url_metadata, store_url, clean_string, handle_none,
-                  finish_url, get_next_pagination)
+                  finish_url, get_next_pagination, is_url_scraped)
+
+# TODO handle locatoin
+# TODO continue midscrape
 
 
 class walmartUrlSpider(scrapy.Spider):
@@ -54,8 +57,16 @@ class walmartUrlSpider(scrapy.Spider):
         time.sleep(.5)
         url = response.url
         self.logger.info(f"about to call walk_menu with response.url: {url}")
-        walk_menu_request = create_unfiltered_parse_request(response.url, self.walk_menu, EC.element_to_be_clickable(
+        request = create_unfiltered_parse_request(response.url, self.walk_menu, EC.element_to_be_clickable(
             (By.CSS_SELECTOR, '[data-automation-id="NavigationBtn"]')), meta_url=response.url)
+        if is_url_scraped(self.cursor, url, scrape_urls=True):
+            next_url = get_next_url(self.cursor, 1, store_id=self.store_id,
+                                    scrape_urls=True, filter="aisle=")
+            request = create_parse_request(next_url,
+                                           self.handle_pagination,
+                                           EC.element_to_be_clickable(
+                                                                     (By.CSS_SELECTOR, '[aria-current="page"]')),
+                                           meta_url=next_url)
         yield walk_menu_request
         # self.walk_menu(response)
 
@@ -92,10 +103,10 @@ class walmartUrlSpider(scrapy.Spider):
 
         self.next_url = next_url
         pagination_request = create_parse_request(next_url,
-                                                             self.handle_pagination,
-                                                             EC.element_to_be_clickable(
-                                                                 (By.CSS_SELECTOR, '[aria-current="page"]')),
-                                                             meta_url=next_url)
+                                                  self.handle_pagination,
+                                                  EC.element_to_be_clickable(
+                                                      (By.CSS_SELECTOR, '[aria-current="page"]')),
+                                                  meta_url=next_url)
 
         yield pagination_request
 
