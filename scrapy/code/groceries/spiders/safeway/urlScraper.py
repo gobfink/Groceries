@@ -2,7 +2,6 @@
 
 import scrapy
 from scrapy.shell import inspect_response
-from scrapy_splash import SplashRequest
 from scrapy_selenium import SeleniumRequest
 
 from selenium.webdriver.common.keys import Keys
@@ -100,7 +99,7 @@ class safewayUrlScraper(scrapy.Spider):
     def replace_store_number(self,url):
         current_number = str(re.findall(r'[\d]+',url)[0])
         ret = url.replace(current_number,self.store_number)
-        self.logger.info("replace_store_number: old_url - ", url, ", new store_number: ", self.store_number, ", ret: ", ret)
+        self.logger.info(f"replace_store_number: old_url - {url}, new store_number: {self.store_number}, {ret}")
 
         return ret
 
