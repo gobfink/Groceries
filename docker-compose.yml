@@ -126,12 +126,12 @@ services:
        retries: 1
      volumes:
      - ./scrapy/code:/code
-     build:
+     build: 
        context: scrapy/
        dockerfile: Dockerfile.selenium.runtime
        shm_size: '6gb'
      hostname: safeway-urls
-     environment:
+     environment: 
         - "PYTHONPATH=/code/groceries"
      depends_on:
      -  db
@@ -149,12 +149,12 @@ services:
        retries: 1
      volumes:
      - ./scrapy/code:/code
-     build:
+     build: 
        context: scrapy/
        dockerfile: Dockerfile.selenium.runtime
        shm_size: '6gb'
      hostname: safeway-groceries
-     environment:
+     environment: 
         - "PYTHONPATH=/code/groceries"
      depends_on:
      -  db
