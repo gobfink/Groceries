@@ -64,8 +64,40 @@ def groceries():
     orderby=db_Grocery.id.asc() # Default ordering is by ID
     if sort_by != None:
        if sort_by == 'name':
-          sorttext = 'grocery name'
           orderby=db_Grocery.name.asc()
+       if sort_by == '-name':
+          orderby=db_Grocery.name.desc()
+       if sort_by == 'id':
+          orderby=db_Grocery.id.asc()
+       if sort_by == '-id':
+          orderby=db_Grocery.id.desc()
+       if sort_by == 'sec':
+          orderby=db_Grocery.section.asc()
+       if sort_by == '-sec':
+          orderby=db_Grocery.section.desc()
+       if sort_by == 'ssec':
+          orderby=db_Grocery.subsection.asc()
+       if sort_by == '-ssec':
+          orderby=db_Grocery.subsection.desc()
+       if sort_by == 'price':
+          orderby=db_Grocery.price.asc()
+       if sort_by == '-price':
+          orderby=db_Grocery.price.desc()
+       if sort_by == 'store':
+          orderby=db_store.name.asc()
+       if sort_by == '-store':
+          orderby=db_store.name.desc()
+    else:
+       sort_by = 'id'
+
+    # Main cursor build
+    groceries = db_Grocery.query
+
+    #Filter section
+    grocery_name = request.args.get("grocery_name")
+    if grocery_name != None:
+       sorttext = 'grocery name'
+       orderby=db_Grocery.name.asc()
        if sort_by == '-name':
           sorttext = 'grocery name, descending'
           orderby=db_Grocery.name.desc()

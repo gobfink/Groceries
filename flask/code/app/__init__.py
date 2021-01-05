@@ -35,5 +35,9 @@ def create_app(config_name):
     def numberFormat(value):
         return format(int(value), ',d')
 
+    @app.template_filter()
+    def numberFormat(value):
+        return format(int(value), ',d')
+
     return app
 

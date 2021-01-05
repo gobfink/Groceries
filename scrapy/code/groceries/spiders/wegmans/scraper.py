@@ -128,7 +128,7 @@ class wegmansScraper(scrapy.Spider):
             yield request
         except:
             print (f"Parse -  Errored out processing request for - {next_url} ")
-            next_url=self.get_next_url(self.cursor, 2)
+            next_url=get_next_url(self.cursor, 2)
             print (f"Parse - Now handling {next_url}")
             request = self.create_parse_request(next_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR, '[add-to-cart]')))
             yield request
@@ -192,7 +192,7 @@ class wegmansScraper(scrapy.Spider):
                 "subsection": subsection
             }
         
-        next_url = self.get_next_url(self.cursor, 1)
+        next_url = get_next_url(self.cursor, 1)
         if next_url is None:
             print ("No more URLs to parse. Finishing")
             return
@@ -203,7 +203,7 @@ class wegmansScraper(scrapy.Spider):
                 yield request
             except:
                 print (f"Parse -  Errored out processing request for - {next_url} ")
-                next_url=self.get_next_url(self.cursor, 2)
+                next_url=get_next_url(self.cursor, 2)
                 print (f"Parse - Now handling {next_url}")
                 request = self.create_parse_request(next_url,self.parse,EC.element_to_be_clickable((By.CSS_SELECTOR, '[add-to-cart]')))
           
