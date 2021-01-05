@@ -27,6 +27,7 @@ class walmartUrlSpider(scrapy.Spider):
     name = "walmart_url_spider"
     store_name = "walmart"
     start_urls = ['https://www.walmart.com/grocery']
+    #FIXME actually implement locatoin
     location = "8386 Sudley Road"
     """
     These are intialized in pipelines.py
