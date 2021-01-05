@@ -89,15 +89,15 @@ def groceries():
           orderby=db_store.name.desc()
     else:
        sort_by = 'id'
-    
+
     # Main cursor build
     groceries = db_Grocery.query
 
     #Filter section
     grocery_name = request.args.get("grocery_name")
     if grocery_name != None:
-          sorttext = 'grocery name'
-          orderby=db_Grocery.name.asc()
+       sorttext = 'grocery name'
+       orderby=db_Grocery.name.asc()
        if sort_by == '-name':
           sorttext = 'grocery name, descending'
           orderby=db_Grocery.name.desc()

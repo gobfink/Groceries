@@ -16,11 +16,11 @@
 {% extends "base.html" %}
 {% block title %}Groceries{% endblock %}
 {% block body %}
-{% set firstnum = pagenum * 25 - 24 %}
-{% set lastnum = pagenum * 25 %}
-{% if lastnum > totalcount %}
-{%    set lastnum=totalcount %}
-{% endif %}
+  {% set firstnum = pagenum * 25 - 24 %}
+  {% set lastnum = pagenum * 25 %}
+  {% if lastnum > totalcount %}
+  {%    set lastnum=totalcount %}
+  {% endif %}
 <div class="content-section">
   <div class="outer">
     <div class="middle">
@@ -29,14 +29,9 @@
         {{ utils.flashed_messages() }}
         <br/>
         <h1 style="text-align:center;">Groceries</h1>
-<<<<<<< HEAD
-        {% if groceries %}
-          <hr class="intro-divider">
-=======
+        <hr class="intro-divider">
         <h3 style="color:tan;font-size:16px;font-style:bold;text-align:center;">{{ feedback }}</h3>
         {% if groceries %}
-
->>>>>>> 899e2e8bc8d9d6f1e1445c351ff5b7cd02587531
           <div class="center">
             <form name=search id=search>
               <input type="hidden" name="page" value="{{ pagenum }}">
@@ -140,7 +135,7 @@
                     <td> {{ grocery.price }} </td>
                     <td> {{ grocery.store.name }} </td>
                 </tr>
-              {% endfor %}
+                {% endfor %}
                 <tr>
                     <td colspan="2">
                     {% if prev_url %}
