@@ -2,7 +2,6 @@
 
 import scrapy
 from scrapy.shell import inspect_response
-from scrapy_splash import SplashRequest
 from scrapy_selenium import SeleniumRequest
 
 from selenium.webdriver.common.keys import Keys

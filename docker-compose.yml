@@ -126,12 +126,12 @@ services:
        retries: 1
      volumes:
      - ./scrapy/code:/code
-     build: 
+     build:
        context: scrapy/
        dockerfile: Dockerfile.selenium.runtime
        shm_size: '6gb'
      hostname: safeway-urls
-     environment: 
+     environment:
         - "PYTHONPATH=/code/groceries"
      depends_on:
      -  db
@@ -149,12 +149,12 @@ services:
        retries: 1
      volumes:
      - ./scrapy/code:/code
-     build: 
+     build:
        context: scrapy/
        dockerfile: Dockerfile.selenium.runtime
        shm_size: '6gb'
      hostname: safeway-groceries
-     environment: 
+     environment:
         - "PYTHONPATH=/code/groceries"
      depends_on:
      -  db
@@ -248,6 +248,28 @@ services:
     - backend
     working_dir: /code/groceries/spiders/walmart
     entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
+    environment:
+      PYTHONPATH: /code/groceries/
+    restart: unless-stopped
+  walmart-groceries:
+    healthcheck:
+       test: ["CMD", "/opt/healthcheck.sh", "walmart", "groceries"]
+       interval: 30s
+       start_period: 90s
+       retries: 1
+    volumes:
+    - ./scrapy/code:/code
+    build:
+      context: scrapy/
+      dockerfile: Dockerfile.selenium.runtime
+    hostname: walmart-groceries
+    depends_on:
+    - db
+    - adminer
+    networks:
+    - backend
+    working_dir: /code/groceries/spiders/walmart
+    entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
     environment:
       PYTHONPATH: /code/groceries/
     restart: unless-stopped
