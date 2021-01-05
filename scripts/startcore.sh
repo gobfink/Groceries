@@ -1,1 +1,9 @@
-sudo docker-compose -f ~/Groceries/docker-compose-core.yml up -d
+calldir=$(dirname $0)
+if [ $calldir = "." ]; then
+   cwd=$PWD 
+   rootdir=$(dirname $cwd)
+else
+   cwd=$PWD/$calldir
+   rootdir=$(dirname $cwd)
+fi
+sudo docker-compose -f $rootdir/docker-compose-core.yml up -d
