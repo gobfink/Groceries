@@ -51,6 +51,8 @@ def groceries():
     """
     Display the different groceries
     """
+
+
     ROWS_PER_PAGE = 25
     page = request.args.get('page', 1, type=int)
 
@@ -65,78 +67,49 @@ def groceries():
     if sort_by != None:
        if sort_by == 'name':
           orderby=db_Grocery.name.asc()
+          sort_text='grocery name'
        if sort_by == '-name':
           orderby=db_Grocery.name.desc()
+          sort_text='grocery name, descending'
        if sort_by == 'id':
           orderby=db_Grocery.id.asc()
+          sort_text='ID'
        if sort_by == '-id':
           orderby=db_Grocery.id.desc()
+          sort_text='ID, descending'
        if sort_by == 'sec':
           orderby=db_Grocery.section.asc()
+          sort_text='section'
        if sort_by == '-sec':
           orderby=db_Grocery.section.desc()
+          sort_text='sorted by section, descending'
        if sort_by == 'ssec':
           orderby=db_Grocery.subsection.asc()
+          sort_text='subsection'
        if sort_by == '-ssec':
           orderby=db_Grocery.subsection.desc()
+          sort_text='subsection, descending'
        if sort_by == 'price':
           orderby=db_Grocery.price.asc()
+          sort_text='price'
        if sort_by == '-price':
           orderby=db_Grocery.price.desc()
+          sort_text='price, descending'
        if sort_by == 'store':
           orderby=db_store.name.asc()
+          sort_text='store'
        if sort_by == '-store':
           orderby=db_store.name.desc()
+          sort_text='name, descending'
     else:
        sort_by = 'id'
+       sort_text='ID'
 
     # Main cursor build
     groceries = db_Grocery.query
 
-    #Filter section
-    grocery_name = request.args.get("grocery_name")
-    if grocery_name != None:
-       sorttext = 'grocery name'
-       orderby=db_Grocery.name.asc()
-       if sort_by == '-name':
-          sorttext = 'grocery name, descending'
-          orderby=db_Grocery.name.desc()
-       if sort_by == 'id':
-          sorttext = 'ID'
-          orderby=db_Grocery.id.asc()
-       if sort_by == '-id':
-          sorttext = 'ID, descending'
-          orderby=db_Grocery.id.desc()
-       if sort_by == 'sec':
-          sorttext = 'Section'
-          orderby=db_Grocery.section.asc()
-       if sort_by == '-sec':
-          sorttext = 'Section, descending'
-          orderby=db_Grocery.section.desc()
-       if sort_by == 'ssec':
-          sorttext = 'Sub Section'
-          orderby=db_Grocery.subsection.asc()
-       if sort_by == '-ssec':
-          sorttext = 'Sub Section, descending'
-          orderby=db_Grocery.subsection.desc()
-       if sort_by == 'price':
-          sorttext = 'Price'
-          orderby=db_Grocery.price.asc()
-       if sort_by == '-price':
-          sorttext = 'Price, descending'
-          orderby=db_Grocery.price.desc()
-       if sort_by == 'store':
-          sorttext = 'Store'
-          orderby=db_store.name
-       if sort_by == '-store':
-          sorttext = 'Store, descending'
-          orderby=db_store.name.desc()
-    else:
-       sorttext = 'ID'
-       sort_by = 'id'
-
-    # Main cursor build
-    groceries = db_Grocery.query
+    # allcount is the count of groceries in the database
+    allcount = groceries.count()
 
     filtertext = ''
     sepStr = ''
@@ -186,7 +159,7 @@ def groceries():
     next_url = url_for('home.groceries', page=groceries.next_num) if groceries.has_next else None
     prev_url = url_for('home.groceries', page=groceries.prev_num) if groceries.has_prev else None
 
-    feedback = filtertext + ', sorted by ' + sorttext
+    feedback = filtertext + ', sorted by ' + sort_text
     return render_template('home/groceries/groceries.html',
                            groceries=groceries.items,
                            next_url=next_url,
@@ -201,4 +174,5 @@ def groceries():
                            subsectionlist = subsectionlist,
                            feedback = feedback,
                            pagenum=page,
-                           totalcount=totalcount)
+                           totalcount=totalcount,
+                           allcount=allcount)

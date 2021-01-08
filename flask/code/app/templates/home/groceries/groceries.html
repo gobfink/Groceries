@@ -30,8 +30,8 @@
         <br/>
         <h1 style="text-align:center;">Groceries</h1>
         <hr class="intro-divider">
-        <h3 style="color:tan;font-size:16px;font-style:bold;text-align:center;">{{ feedback }}</h3>
-        {% if groceries %}
+        <h3 style="color:tan;font-size:16px;font-style:bold;text-align:center;">{{ feedback }}<br>({{ totalcount }} Items found)</h3>
+
           <div class="center">
             <form name=search id=search>
               <input type="hidden" name="page" value="{{ pagenum }}">
@@ -92,6 +92,7 @@
             <br />
             <p />
             <p />
+        {% if groceries %}
             <table width="100%" class="table table-striped table-bordered">
                 <thead>
                     {% if sort_by == 'id' %}
@@ -155,10 +156,18 @@
             </table>
           </div>
         {% else %}
+          </div>
+           {% if allcount == 0 %}
           <div style="text-align: center">
             <h3> No groceries have been added. </h3>
             <hr class="intro-divider">
           </div>
+           {% else %}
+           <div style="text-align: center">
+             <h3> Search returned no rows of data. </h3>
+             <hr class="intro-divider">
+           </div>
+           {% endif %}
         {% endif %}
         </div>
       </div>
