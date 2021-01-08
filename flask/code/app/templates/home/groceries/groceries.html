@@ -60,17 +60,17 @@
                             {% else %}
                             <option value="{{ cursubsection }}">{{ cursubsection }}</option>
                             {% endif %}
-                          {% endfor %}
+                          {% endfor %}Edit Grocery Item
                       </select>
                     </td>
                     <td>
                       <select class="" name="store_name">
                             <option value=""></option>
                           {% for store in storelist %}
-                            {% if store == store_name %}
-                            <option value="{{ store }}" selected>{{ store }}</option>
+                            {% if store[0] == store_name %}
+                            <option value="{{ store[0] }}" selected>{{ store[0] }}</option>
                             {% else %}
-                            <option value="{{ store }}">{{ store }}</option>
+                            <option value="{{ store[0] }}">{{ store[0] }}</option>
                             {% endif %}
                           {% endfor %}
                       </select>

@@ -6,7 +6,7 @@ from flask_login import current_user, login_required
 from ..models import db_Grocery, db_store
 from .. import db
 
-from .forms import GroceryForm, GrocerySearchForm
+from .forms import GroceryForm, GrocerySearchForm, GroceryDelForm
 
 from . import home
 
@@ -199,7 +199,6 @@ def add_grocery():
 #                          definition=form.definition.data,
 #                          author_id=authid,
 #                          dateCreate=datetime.datetime.now())
-
 #            db.session.add(acronym)
 #            db.session.commit()
             # Better wacronymsay: takes advantage of the fact that when you commit an add, the record acronym is updated
@@ -236,71 +235,31 @@ def edit_grocery(id):
     add_grocery = False
     grocery = db_Grocery.query.get_or_404(id)
 
-    flash('You have selected edit grocery item' + grocery.name)
-    return redirect(url_for('home.groceries'))
-#    acronym = Acronym.query.get_or_404(id)
-    # form = AcronymsForm(obj=acronym)
-
-    # tag_query=Tag.query.all();
-    # tagids={}
-    # tags={}
-    # acrotag_query=AcroTag.query.filter_by(acroID=id).all()
-    # associds=[atag.tagID for atag in acrotag_query]
-
-    # for tag in tag_query:
-    #   #check it if its associated, else don't
-    #   tags[tag.tag] = ( tag.id in associds )
-    #   tagids[tag.tag] = tag.id
-    #
-    # if form.validate_on_submit():
-    #     if form.submit.data:
-    #       selected_tags={}
-    #       # associds has acrotag ids
-    #       formids = request.form.getlist('tag')
-    #       # Delete all acrotags not in formids
-    #       for t in associds:
-    #           if t not in formids:
-    #              a = AcroTag.query.filter_by(acroID=id).filter_by(tagID=t)
-    #              # Remember a is a query string that returns all fields so we only need the id field (field 0)
-    #              db.session.delete(a[0])
-    #       # Add all tagids in formids not in acrotags
-    #       for t in formids:
-    #           if t not in associds:
-    #              a = AcroTag(acroID=id, tagID=int(t))
-    #              db.session.add(a)
-    #       acronym.acronym = form.acronym.data
-    #       acronym.name = form.name.data
-    #       acronym.definition = form.definition.data
-    #       db.session.commit()
-    #       flash('You have successfully edited the acronym \'' + acronym.acronym + '\'')
-    #     else:
-    #        flash('You have Cancelled the edit of acronym \'' + acronym.acronym + '\'')
-    #
-    #     # redirect to the acronym page
-    #     return redirect(url_for('home.acronyms'))
-    # # Handle submits and cancels when form has missing fields
-    # if form.submit.data:
-    #     blankFields = ''
-    #     sepStr = ''
-    #     if form.acronym.data == '':
-    #         blankFields = 'Acronym'
-    #         sepStr = ','
-    #     if form.definition.data == '':
-    #         blankFields += sepStr + 'Definition'
-    #     flash('You are missing data in fields :' + blankFields)
-    # elif form.cancel.data:
-    #     flash('You have Cancelled the edit of acronym \'' + acronym.acronym + '\'')
-    #     return redirect(url_for('home.acronyms'))
-    # form.acronym.data = acronym.acronym
-    # return render_template('home/acronyms/acronym.html',
-    #                        action="Edit",
-    #                        add_acronym=add_acronym,
-    #                        form=form,
-    #                        acronym=acronym,
-    #                        title="Edit Tag",
-    #                        acronyms_tags=tags,
-    #                        acronyms_tagids=tagids)
-
+    form=GroceryForm(obj=grocery)
+    #if form.validate_on_submit():
+    if form.submit.data:
+        grocery.name = form.name.data
+        grocery.brand = form.brand.data
+        grocery.section = form.section.data
+        grocery.subsection = form.subsection.data
+        grocery.price = form.price.data
+        grocery.ounces = form.ounces.data
+        grocery.unit = form.unit.data
+        grocery.store_id = form.store_id.data
+        db.session.commit()
+        flash('You have submitted an edit to grocery item ' + grocery.name)
+        return redirect(url_for('home.groceries'))
+    elif form.cancel.data:
+        flash('You have cancelled the edit to grocery item ' + grocery.name)
+        return redirect(url_for('home.groceries'))
+    storelist=getStores()
+    store_name = grocery.store.name
+    return render_template('home/groceries/grocery.html',
+        form=form,
+        add_grocery=add_grocery,
+        store_name = store_name,
+        storelist=storelist,
+        grocery=grocery)
 
 @home.route('/grocery/delete/<int:id>', methods=['GET', 'POST'])
 # @login_required
@@ -309,16 +268,16 @@ def delete_grocery(id):
     Delete a grocery entry from the database
     """
     grocery = db_Grocery.query.get_or_404(id)
-    flash('You have selected delete grocery item ' + grocery.name)
-    return redirect(url_for('home.groceries'))
-    # check_admin()
-    #
-    # acronym = Acronym.query.get_or_404(id)
-    # db.session.delete(acronym)
-    # db.session.commit()
-    # flash('You have successfully deleted the acronym.')
-    #
-    # # redirect to the acronyms page
-    # return redirect(url_for('home.acronyms'))
-    #
-    # return render_template(title="Delete Acronym")
+    form=GroceryForm(obj=grocery)
+
+    if form.submit.data:
+        db.session.delete(grocery)
+        db.session.commit()
+        flash('You have submitted a delete of grocery item ' + grocery.name)
+        return redirect(url_for('home.groceries'))
+    elif form.cancel.data:
+        flash('You have cancelled the delete of grocery item ' + grocery.name)
+        return redirect(url_for('home.groceries'))
+    return render_template('home/groceries/delgrocery.html',
+        form=form,
+        grocery=grocery)

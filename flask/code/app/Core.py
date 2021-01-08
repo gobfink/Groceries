@@ -26,13 +26,20 @@ def convRec(inrec):
         retval.append(rec[0])
     return(retval)
 
+def getStoreID(storename):
+    sql = 'select id from storeTable WHERE name = \'' + storename + '\''
+    print('getstore sql ' + sql)
+    retval=executeSQLr(sql)
+    return(retval)
+
 def getStores():
     # Get store names for the store pick list
-    sql='select distinct st.name from groceryTable as gt '
+    sql = 'select distinct st.name, st.id from groceryTable as gt '
     sql+='left join storeTable as st on gt.store_id = st.id '
     sql+='order by st.name'
     retval=executeSQLm(sql)
-    return(convRec(retval))
+#    return(convRec(retval))
+    return(retval)
 
 def getSections():
     # Get section names for the section pick list
