@@ -1,0 +1,57 @@
+<!-- app/templates/home/groceries/grocery.html -->
+{% import "bootstrap/utils.html" as utils %}
+{% extends "base.html" %}
+{% block title %}
+    {% if add_grocery %}
+        Add Grocery
+    {% else %}
+        Edit Grocery
+    {% endif %}
+{% endblock %}
+{% block body %}
+<div class="content-section">
+ <div class="outer">
+    <div class="middle">
+      <div class="inner">
+        {{ utils.flashed_messages() }}
+        <div class="center">
+          <form action="" method="post"
+              class="form" role="form">
+            {% if add_grocery %}
+                <h1>Add Grocery Item</h1>
+            {% else %}
+                <h1>Edit Grocery Item</h1>
+            {% endif %}
+            <br/>
+            {{ form.csrf_token }}
+            <table  class="table table-striped table-bordered">
+               <tr><td>{{ form.name.label }}</td><td>{{ form.name }}</td></tr>
+               <tr><td>{{ form.brand.label }}</td><td>{{ form.brand }}</td></tr>
+               <tr><td>{{ form.section.label }}</td><td>{{ form.section }}</td></tr>
+               <tr><td>{{ form.subsection.label }}</td><td>{{ form.subsection }}</td></tr>
+               <tr><td>{{ form.price.label }}</td><td>{{ form.price }}</td></tr>
+               <tr><td>{{ form.ounces.label }}</td><td>{{ form.ounces }}</td></tr>
+               <tr><td>{{ form.unit.label }}</td><td>{{ form.unit }}</td></tr>
+               <tr><td>{{ form.store_id.label }}</td>
+                 <td>
+                   <select class="" name="store_id">
+                         <option value=""></option>
+                       {% for store in storelist %}
+                         {% if store.name == store_name %}
+                         <option value="{{ store.id }}" selected>{{ store.name }}</option>
+                         {% else %}
+                         <option value="{{ store.id }}">{{ store.name }}</option>
+                         {% endif %}
+                       {% endfor %}
+                   </select>
+                 </td>
+               </tr>
+               <tr><td align=right>{{ form.submit }}</td><td align=left>{{ form.cancel }}</td></tr>
+            </table>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
