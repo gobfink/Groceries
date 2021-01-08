@@ -125,6 +125,7 @@
                     {% else %}
                     <th>Store <a href="?page={{ pagenum }}&subsection={{ subsection }}&section={{ section }}&grocery_name={{ grocery_name }}&store_name={{ store_name }}&sort=store">v</a></th>
                     {% endif %}
+                    <th colspan="2">Commands</th>
                 </thead>
                 <tbody>
                 {% for grocery in groceries %}
@@ -135,6 +136,8 @@
                     <td> {{ grocery.subsection }} </td>
                     <td> {{ grocery.price }} </td>
                     <td> {{ grocery.store.name }} </td>
+                    <td><a href="{{ url_for('home.edit_grocery',id=grocery.id) }}">Edit</a></td>
+                    <td><a href="{{ url_for('home.delete_grocery',id=grocery.id) }}">Delete</a></td>
                 </tr>
                 {% endfor %}
                 <tr>
