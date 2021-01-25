@@ -315,15 +315,18 @@ def find_store_id(cursor, store_name, location):
 # @description returns true if the given url has been scraped else false
 # @param cursor to query the database
 # @param url to query the database for
+# @param store_id to search inside
 # @param scrape_urls if true check scraped_urls instead of scraped
-
-
-def is_url_scraped(cursor, url, scrape_urls=False):
-    scraped_query = f"SELECT scraped FROM urlTable where url='{url}'"
+def is_url_scraped(cursor, url, store_id, scrape_urls=False):
+    scraped_query = f"SELECT count(*) FROM urlTable where store_id='{store_id}' and url='{url}' and scraped='1'"
     if scrape_urls:
         scraped_query = scraped_query.replace("scraped", "scraped_urls")
     cursor.execute(scraped_query)
-    scraped = cursor.fetchone()[0]
+    scraped = cursor.fetchone()
+    if scraped is None:
+        print(f"is_url_scraped. Couldn't find {url} for store_id: {store_id}")
+        return False
+    scraped = scraped[0]
     print(f"is_url_scraped for query: {scraped_query}, returned: {scraped}")
     return scraped == 1
 

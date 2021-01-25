@@ -5,9 +5,11 @@ from scrapy_selenium import SeleniumRequest
 # @param string url - url to request from
 # @param function call_back - call back to point to once yielded
 # @param selenium.EC(tuple) wait_until - Expected condition to wait for
+# @param function errback - function to call on an error
 # @param string meta_url - the meta url to check to see if the urls is valid
+# @param boolean cookies - whether or not to use cookies (default true)
 # @returns SeleniumRequest request - request created with above parameters
-def create_unfiltered_parse_request(url,callback,wait_until,meta_url=""):
+def create_unfiltered_parse_request(url,callback,wait_until,errback=None, meta_url="", cookies=True):
     if meta_url == "" :
         meta_url = url
     request = SeleniumRequest(
@@ -15,7 +17,8 @@ def create_unfiltered_parse_request(url,callback,wait_until,meta_url=""):
                 callback=callback,
                 dont_filter=True,
                 wait_time=5,
-                meta={'url':meta_url},
+                meta={'url':meta_url, 'dont_merge_cookies': not cookies},
+                errback=errback,
                 wait_until=wait_until
     			)
     return request
@@ -26,29 +29,16 @@ def create_unfiltered_parse_request(url,callback,wait_until,meta_url=""):
 # @param function call_back - call back to point to once yielded
 # @param selenium.EC(tuple) wait_until - Expected condition to wait for
 # @param string meta_url - the meta url to check to see if the urls is valid
+# @param function errback - errorback function to hit when errorerd out
+# @param boolean cookies - whether or not to use cookies (default true)
 # @returns SeleniumRequest request - request created with above parameters
-def create_parse_request(url,callback,wait_until, meta_url=""):
+def create_parse_request(url,callback,wait_until,errback=None ,meta_url="", cookies=True):
     request = SeleniumRequest(
                 url=url,
                 callback=callback,
                 wait_time=5,
-                meta={'url':url},
-                wait_until=wait_until
-    			)
-    return request
-
-# @description creates a parse request with no cookies
-# @param string url - url to request from
-# @param function call_back - call back to point to once yielded
-# @param selenium.EC(tuple) wait_until - Expected condition to wait for
-# @param string meta_url - the meta url to check to see if the urls is valid
-# @returns SeleniumRequest request - request created with above parameters
-def create_nocookies_request(url,callback,wait_until, meta_url=""):
-    request = SeleniumRequest(
-                url=url,
-                callback=callback,
-                wait_time=15,
-                meta={'url':url, 'dont_merge_cookies': True},
+                meta={'url':url, 'dont_merge_cookies': not cookies},
+                errback=errback,
                 wait_until=wait_until
     			)
     return request

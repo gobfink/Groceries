@@ -56,26 +56,23 @@ ROBOTSTXT_OBEY = True
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    'scrapy_splash.SplashCookiesMiddleware': 723,
-    'scrapy_splash.SplashMiddleware': 725,
     'scrapy_selenium.SeleniumMiddleware': 800,
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
 }
-SPLASH_URL = 'http://splash-middleware:8050/'
-DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
-HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 
 
 # TODO lookinto setting up a remote selenium driver container -- for some reason i can't really get this to work, the documentation is kinda confusing, and it won't run withouth a selenium_driver_executable_path
-#In order to use a remote Selenium driver, specify SELENIUM_COMMAND_EXECUTOR instead of SELENIUM_DRIVER_EXECUTABLE_PATH: python SELENIUM_COMMAND_EXECUTOR = 'http://selenium-middleware:4444/wd/hub' 
+#In order to use a remote Selenium driver, specify SELENIUM_COMMAND_EXECUTOR instead of SELENIUM_DRIVER_EXECUTABLE_PATH: python SELENIUM_COMMAND_EXECUTOR = 'http://selenium-middleware:4444/wd/hub'
 #https://github.com/clemfromspace/scrapy-selenium
 #SELENIUM_COMMAND_EXECUTOR = 'http://selenium-middleware:4444/wd/hub'
-#SELENIUM_DRIVER_EXECUTABLE_PATH: python 
+#SELENIUM_DRIVER_EXECUTABLE_PATH: python
 
-SELENIUM_DRIVER_NAME = 'firefox'
-SELENIUM_DRIVER_EXECUTABLE_PATH = which('geckodriver')
-SELENIUM_DRIVER_ARGUMENTS=['-headless','-set_page_load_timeout=150']  
-#SELENIUM_DRIVER_ARGUMENTS=['-set_page_load_timeout=150']  
+SELENIUM_DRIVER_NAME = 'chrome'
+#SELENIUM_COMMAND_EXECUTOR = 'http://localhost:4444/wd/hub'
+SELENIUM_DRIVER_EXECUTABLE_PATH = which('chromedriver')
+SELENIUM_DRIVER_ARGUMENTS=['--no-sandbox', '--incognito']
+#SELENIUM_DRIVER_ARGUMENTS=['-headless','-set_page_load_timeout=500']
+#SELENIUM_DRIVER_ARGUMENTS=['-set_page_load_timeout=500']
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -113,5 +110,5 @@ DB_SETTINGS = {
   "db" : "groceries",
   "user" : "root",
   "passwd" : "example",
-  "host" : "db"
+  "host" : "192.168.1.113"
 }
