@@ -225,17 +225,21 @@ def get_url_metadata(cursor, url):
 # @param int store_id - store_id to filter for when looking for urls, -1 will use all
 # @param Boolean scrape_urls - if set to true, this will look for the scraped_urls flag instead
 # @param string filter - filters the url for the given string
+# @param boolean reverse_filter - reverses the filter to filter out all things that match the filter
 # @returns string url - next url found in the database pointed to by cursor
 
 
-def get_next_url(cursor, iteration, store_id=-1, scrape_urls=False, filter=""):
+def get_next_url(cursor, iteration, store_id=-1, scrape_urls=False, filter="", reverse_filter=False):
     sql = f"SELECT url from urlTable WHERE Scraped=0 ORDER BY updated DESC LIMIT {iteration}"
+    filter_string="LIKE"
+    if reverse_filter:
+        filter_string="NOT LIKE"
     # if store_id == -1:
     #    sql = f"SELECT url from urlTable WHERE Scraped=0 ORDER BY updated DESC LIMIT {iteration}"
     # else:
     #    sql = f"SELECT url from urlTable WHERE Scraped=0 AND store_id={store_id} ORDER BY updated DESC LIMIT {iteration}"
     if filter != "":
-        sql = sql.replace("ORDER", f"AND Url LIKE '%{filter}%' ORDER")
+        sql = sql.replace("ORDER", f"AND Url {filter_string} '%{filter}%' ORDER")
     if store_id != -1:
         sql = sql.replace("WHERE", f"WHERE store_id={store_id} AND")
     if scrape_urls:

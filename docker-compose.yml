@@ -8,16 +8,17 @@ services:
      - "5023:5023"
      - "8050:8050"
      - "8051:8051"
-     networks:
-     - backend
+     network_mode: host
+
   scrapy:
      volumes:
      - ./scrapy/code:/code
      -  /tmp/.X11-unix:/tmp/.X11-unix
+     - /dev/shm:/dev/shm
      build:
        context: scrapy/
        dockerfile: Dockerfile.debug
-       shm_size: '8gb'
+       #shm_size: '8gb'
      hostname: scrapy
      environment:
         - "DISPLAY"
@@ -26,11 +27,13 @@ services:
      -  splash-middleware
      -  db
      -  adminer
-     networks:
-     - backend
+     network_mode: host
+     privileged: true
+
      entrypoint:
      - "/bin/bash"
      working_dir: /code/groceries/spiders/walmart
+     network_mode: host
   harris-teeter-urls:
      healthcheck:
        test: ["CMD", "/opt/healthcheck.sh", "harris-teeter", "url"]
@@ -49,8 +52,8 @@ services:
      depends_on:
      -  db
      -  adminer
-     networks:
-     - backend
+     network_mode: host
+
      entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
      working_dir: /code/groceries/spiders/harris-teeter
      restart: unless-stopped
@@ -72,8 +75,8 @@ services:
      depends_on:
      -  db
      -  adminer
-     networks:
-     - backend
+     network_mode: host
+
      entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
      working_dir: /code/groceries/spiders/harris-teeter
      restart: unless-stopped
@@ -90,8 +93,8 @@ services:
      depends_on:
      -  db
      -  adminer
-     networks:
-     - backend
+     network_mode: host
+
      entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
      working_dir: /code/groceries/spiders/wegmans
      restart: unless-stopped
@@ -113,8 +116,8 @@ services:
      depends_on:
      -  db
      -  adminer
-     networks:
-     - backend
+     network_mode: host
+
      entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
      working_dir: /code/groceries/spiders/safeway
      restart: unless-stopped
@@ -136,8 +139,8 @@ services:
      depends_on:
      -  db
      -  adminer
-     networks:
-     - backend
+     network_mode: host
+
      entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
      working_dir: /code/groceries/spiders/safeway
      restart: unless-stopped
@@ -159,8 +162,8 @@ services:
      depends_on:
      -  db
      -  adminer
-     networks:
-     - backend
+     network_mode: host
+
      entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
      working_dir: /code/groceries/spiders/safeway
      restart: unless-stopped
@@ -180,8 +183,8 @@ services:
       - splash-middleware
       - db
       - adminer
-    networks:
-      - backend
+    network_mode: host
+
     working_dir: /code/groceries/spiders/lidl
     entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
     environment:
@@ -203,8 +206,8 @@ services:
       - splash-middleware
       - db
       - adminer
-    networks:
-      - backend
+    network_mode: host
+
     working_dir: /code/groceries/spiders/lidl
     entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
     environment:
@@ -221,8 +224,8 @@ services:
     - splash-middleware
     - db
     - adminer
-    networks:
-    - backend
+    network_mode: host
+
     working_dir: /code/groceries/spiders/lidl
     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
     environment:
@@ -244,8 +247,8 @@ services:
     - splash-middleware
     - db
     - adminer
-    networks:
-    - backend
+    network_mode: host
+
     working_dir: /code/groceries/spiders/walmart
     entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
     environment:
@@ -266,8 +269,8 @@ services:
     depends_on:
     - db
     - adminer
-    networks:
-    - backend
+    network_mode: host
+
     working_dir: /code/groceries/spiders/walmart
     entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
     environment:
@@ -284,8 +287,8 @@ services:
     - splash-middleware
     - db
     - adminer
-    networks:
-    - backend
+    network_mode: host
+
     working_dir: /code/groceries/spiders/walmart
     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
     environment:
@@ -296,8 +299,8 @@ services:
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
-    networks:
-      - backend
+    network_mode: host
+
     environment:
       MYSQL_DATABASE: db
       MYSQL_USER: root
@@ -312,8 +315,8 @@ services:
     hostname: adminer
     image: adminer
     restart: unless-stopped
-    networks:
-      - backend
+    network_mode: host
+
     depends_on:
       - db
     ports:
@@ -327,8 +330,8 @@ services:
       - ./upload:/code/app/upload
     ports:
       - "8080:80"
-    networks:
-      - backend
+    network_mode: host
+
       - frontend
     environment:
       FLASK_CONFIG: development
