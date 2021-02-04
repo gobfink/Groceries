@@ -51,7 +51,7 @@ class wegmansGroceryScraper(scrapy.Spider):
     def skip_page(self, failure):
         url = failure.request.url
         self.logger.info(f"skipping for url: {url}, continuing")
-        finish_url(self.conn, self.store_id, url, set_val=-1, scrape_urls=True)
+        finish_url(self.conn, self.store_id, url, set_val=-1)
         request = self.get_next_request()
         yield request
 
