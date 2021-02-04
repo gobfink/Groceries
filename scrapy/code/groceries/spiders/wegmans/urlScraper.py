@@ -12,12 +12,14 @@ from seleniumHelpers import (create_parse_request,
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from scrapy_selenium import SeleniumRequest
+from wegmans_utils import (close_modal, change_store_location)
+
 import MySQLdb
 import time
 
 
-class wegmansScraper(scrapy.Spider):
-    name = "wegmans_spider"
+class wegmansUrlScraper(scrapy.Spider):
+    name = "wegmans_url_spider"
     store_name = "wegmans"
     start_urls = ['https://shop.wegmans.com/shop/categories']
 
@@ -65,7 +67,7 @@ class wegmansScraper(scrapy.Spider):
     def handle_first_request(self,response):
         self.logger.info(f"handling first request. {response.url}")
         self.driver = response.request.meta['driver']
-        self.close_modal()
+        close_modal(self)
         self.change_store_location()
         self.logger.info(f"about to create create_unfiltered_parse_request for {response.url}")
         request = create_unfiltered_parse_request(response.url,
@@ -81,8 +83,8 @@ class wegmansScraper(scrapy.Spider):
     def collect_menu(self, response):
         self.logger.info("inside collect_menu! ")
         self.driver = response.request.meta['driver']
-        self.close_modal()
-        self.change_store_location()
+        close_modal(self)
+        change_store_location(self)
         departments = self.driver.find_elements_by_css_selector(
             '[category-filter="subcategory"]')
         for department in departments:
@@ -109,8 +111,8 @@ class wegmansScraper(scrapy.Spider):
         # if it has a page-last class, read that content, and interprolate
         # else, get the last pager, page and interprolate
         self.logger.info("Inside handle_pagination")
-        self.close_modal()
-        self.change_store_location()
+        close_modal(self)
+        change_store_location(self)
         base_url = response.url
         string_location=base_url.find(self.page_string)
         if string_location != -1:
@@ -147,7 +149,7 @@ class wegmansScraper(scrapy.Spider):
         url = failure.request.url
         self.logger.info(f"no_pagination for url: {url}, continuing")
 
-        finish_url(self.conn, self.store_id, url, scrape_urls=True)
+        finish_url(self.conn, self.store_id, url, set_val=2, scrape_urls=True)
         # TODO add a filter so we don't get the ones with ?page=
         request = self.get_next_request()
         yield request
@@ -165,38 +167,38 @@ class wegmansScraper(scrapy.Spider):
                                        )
         return request
 
-    def close_modal(self):
-        close_button = self.driver.find_elements_by_css_selector(
-            '#shopping-selector-parent-process-modal-close-click')
-        if close_button:
-            self.logger.info("Closing modal")
-            close_button[0].click()
-            time.sleep(.5)
-        else:
-            self.logger.info("No Modal detected continuing")
-
-    def change_store_location(self):
-        store_button = self.driver.find_element_by_css_selector(
-            '[data-test="store-button"]')
-        current_store = store_button.text
-        if current_store == self.location:
-            self.logger.info(
-                f"Current location = {current_store} is correct. Continuing.")
-            return
-        store_button.click()
-        time.sleep(self.delay)
-        stores = self.driver.find_elements_by_css_selector('.store-row')
-        # Go through each of the stores, until one matches the text, then click on it
-        for store in stores:
-            name = store.find_element_by_css_selector('.name')
-            store_name = name.text
-            #print (f"change_store_location - {name.text}")
-            if store_name == self.location:
-                button = store.find_element_by_css_selector(
-                    '[data-test="select-store-button"]')
-                button.click()
-                time.sleep(self.delay)
-                self.logger.info(f"Set location to {store_name}")
-                return
+#    def close_modal(self):
+#        close_button = self.driver.find_elements_by_css_selector(
+#            '#shopping-selector-parent-process-modal-close-click')
+#        if close_button:
+#            self.logger.info("Closing modal")
+#            close_button[0].click()
+#            time.sleep(.5)
+#        else:
+#            self.logger.info("No Modal detected continuing")
+#
+#    def change_store_location(self):
+#        store_button = self.driver.find_element_by_css_selector(
+#            '[data-test="store-button"]')
+#        current_store = store_button.text
+#        if current_store == self.location:
+#            self.logger.info(
+#                f"Current location = {current_store} is correct. Continuing.")
+#            return
+#        store_button.click()
+#        time.sleep(self.delay)
+#        stores = self.driver.find_elements_by_css_selector('.store-row')
+#        # Go through each of the stores, until one matches the text, then click on it
+#        for store in stores:
+#            name = store.find_element_by_css_selector('.name')
+#            store_name = name.text
+#            #print (f"change_store_location - {name.text}")
+#            if store_name == self.location:
+#                button = store.find_element_by_css_selector(
+#                    '[data-test="select-store-button"]')
+#                button.click()
+#                time.sleep(self.delay)
+#                self.logger.info(f"Set location to {store_name}")
+#                return
 
         self.logger.warn(f"Could not set location to {self.location}")

@@ -110,5 +110,5 @@ DB_SETTINGS = {
   "db" : "groceries",
   "user" : "root",
   "passwd" : "example",
-  "host" : "127.0.0.1"
+  "host" : "db"
 }

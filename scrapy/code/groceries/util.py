@@ -291,10 +291,11 @@ def store_url(conn, url, store_id, category, section, subsection, grocery_quanti
 # @param MySQLDb.connection - connection used to fetch/store the data from the database
 # @param int store_id - store_id associated with the url to update
 # @param string url - url to update
+# @param int set_val - value to set in the database
 # @param bool scrape_urls - sets scraped_urls instead of scraped for the url
 # @returns string url - url updated
-def finish_url(conn, store_id, url, scrape_urls=False):
-    url_update = f" UPDATE urlTable SET scraped=1 WHERE url=\"{url}\" AND store_id='{store_id}'"
+def finish_url(conn, store_id, url,set_val=1, scrape_urls=False):
+    url_update = f" UPDATE urlTable SET scraped={set_val} WHERE url=\"{url}\" AND store_id='{store_id}'"
     if scrape_urls:
         url_update = url_update.replace("scraped", "scraped_urls")
     cursor = conn.cursor()
