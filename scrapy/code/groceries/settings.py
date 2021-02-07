@@ -70,7 +70,7 @@ DOWNLOADER_MIDDLEWARES = {
 SELENIUM_DRIVER_NAME = 'chrome'
 #SELENIUM_COMMAND_EXECUTOR = 'http://localhost:4444/wd/hub'
 SELENIUM_DRIVER_EXECUTABLE_PATH = which('chromedriver')
-SELENIUM_DRIVER_ARGUMENTS=['--no-sandbox', '--incognito']
+SELENIUM_DRIVER_ARGUMENTS=['--no-sandbox', '--incognito', '--headless']
 #SELENIUM_DRIVER_ARGUMENTS=['-headless','-set_page_load_timeout=500']
 #SELENIUM_DRIVER_ARGUMENTS=['-set_page_load_timeout=500']
 

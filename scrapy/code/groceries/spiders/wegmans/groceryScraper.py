@@ -39,16 +39,16 @@ class wegmansGroceryScraper(scrapy.Spider):
             self.logger.info("Could not find any more urls, therefore we must be finished!")
             return None
 
-        request = create_parse_request(next_url,
+        request = create_unfiltered_parse_request(next_url,
                                    self.parse,
                                    EC.element_to_be_clickable(
                                        (By.CSS_SELECTOR, '[data-test="product-cell"]')),
                                    meta_url=next_url,
-                                   errback=self.skip_page
+                                   errback=self.retry_page
                                    )
         return request
 
-    def skip_page(self, failure):
+    def retry_page(self, failure):
         url = failure.request.url
         self.logger.info(f"skipping for url: {url}, continuing")
         finish_url(self.conn, self.store_id, url, set_val=-1)

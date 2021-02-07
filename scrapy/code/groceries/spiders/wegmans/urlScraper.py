@@ -49,9 +49,10 @@ class wegmansUrlScraper(scrapy.Spider):
                                                   )
 
         if is_url_scraped(self.cursor, url, self.store_id, scrape_urls=True):
+            #next_url = get_next_url(self.cursor, 1, store_id=self.store_id,
+            #                        scrape_urls=True,filter=self.page_string,reverse_filter=True)
             next_url = get_next_url(self.cursor, 1, store_id=self.store_id,
-                                    scrape_urls=True,filter=self.page_string,reverse_filter=True)
-
+                        scrape_urls=True)
 
             request = create_unfiltered_parse_request(next_url,
                                            self.handle_first_request,
@@ -68,7 +69,7 @@ class wegmansUrlScraper(scrapy.Spider):
         self.logger.info(f"handling first request. {response.url}")
         self.driver = response.request.meta['driver']
         close_modal(self)
-        self.change_store_location()
+        change_store_location(self)
         self.logger.info(f"about to create create_unfiltered_parse_request for {response.url}")
         request = create_unfiltered_parse_request(response.url,
                                        self.handle_pagination,
@@ -149,14 +150,16 @@ class wegmansUrlScraper(scrapy.Spider):
         url = failure.request.url
         self.logger.info(f"no_pagination for url: {url}, continuing")
 
-        finish_url(self.conn, self.store_id, url, set_val=2, scrape_urls=True)
+        finish_url(self.conn, self.store_id, url, set_val=-1, scrape_urls=True)
         # TODO add a filter so we don't get the ones with ?page=
         request = self.get_next_request()
         yield request
 
     def get_next_request(self):
+        #next_url = get_next_url(self.cursor, 1, store_id=self.store_id,
+        #                        scrape_urls=True,filter=self.page_string,reverse_filter=True)
         next_url = get_next_url(self.cursor, 1, store_id=self.store_id,
-                                scrape_urls=True,filter=self.page_string,reverse_filter=True)
+                        scrape_urls=True)
 
         request = create_parse_request(next_url,
                                        self.handle_pagination,
