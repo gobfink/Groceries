@@ -30,29 +30,40 @@ class wegmansGroceryScraper(scrapy.Spider):
     store_id=-1
     delay = 10
     page_string = "?page="
+    MAX_RETRIES = 3
 
-    def get_next_request(self):
-        next_url = get_next_url(self.cursor, 1, store_id=self.store_id,
-                                filter=self.page_string)
+    def get_next_request(self, attempt=1):
+        #TODO think about adding in a url filter
+        #next_url = get_next_url(self.cursor, 1, store_id=self.store_id,
+        #                        filter=self.page_string)
+        next_url = get_next_url(self.cursor, 1, store_id=self.store_id)
 
         if next_url is None:
             self.logger.info("Could not find any more urls, therefore we must be finished!")
             return None
 
-        request = create_unfiltered_parse_request(next_url,
+        request = create_parse_request(next_url,
                                    self.parse,
                                    EC.element_to_be_clickable(
                                        (By.CSS_SELECTOR, '[data-test="product-cell"]')),
                                    meta_url=next_url,
-                                   errback=self.retry_page
+                                   errback=self.retry_page,
+                                   filter=False,
+                                   attempt=attempt
                                    )
+
         return request
 
     def retry_page(self, failure):
         url = failure.request.url
-        self.logger.info(f"skipping for url: {url}, continuing")
-        finish_url(self.conn, self.store_id, url, set_val=-1)
-        request = self.get_next_request()
+        attempt = failure.request.meta['attempt']
+        attempt = int(attempt) + 1
+        self.logger.info(f"retrying url: {url}, on attempt: {attempt}, continuing")
+        if attempt > self.MAX_RETRIES:
+            self.logger.warning(f"Failed {url}, {attempt} times. Skipping")
+            finish_url(self.conn, self.store_id, url, set_val=-1)
+            attempt = 1
+        request = self.get_next_request(attempt=attempt)
         yield request
 
     def start_requests(self):
