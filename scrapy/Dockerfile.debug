@@ -1,13 +1,15 @@
-FROM selenium/standalone-chrome
+FROM python
 RUN pip install --upgrade pip; pip install scrapy ; pip install scrapy-splash ;  pip install mysqlclient  ; pip install selenium
 RUN pip install scrapy-selenium
-RUN apt update ; apt install -y firefox-esr vim default-mysql-client chromium
+RUN apt update ; apt install -y firefox-esr vim default-mysql-client
 ADD https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz /usr/local/bin
 ADD https://chromedriver.storage.googleapis.com/87.0.4280.88/chromedriver_linux64.zip /opt
 RUN unzip /opt/chromedriver_linux64.zip -d /usr/local/bin
 ADD healthcheck.sh /opt/healthcheck.sh
 RUN tar -C /usr/local/bin -xvf /usr/local/bin/geckodriver-v0.26.0-linux64.tar.gz ; rm /usr/local/bin/geckodriver-v0.26.0-linux64.tar.gz ; chmod u+x /usr/local/bin/geckodriver
+ADD https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb /
+RUN apt install -y /google-chrome-stable_current_amd64.deb
 #ADD scrapy-selenium/middlewares.py /usr/local/lib/python3.8/site-packages/scrapy_selenium
 #/scrapy_selenium # Add patched middleware that handles exceptions
-#RUN useradd scrapy
-#USER scrapy
+RUN useradd -m scrapy
+USER scrapy

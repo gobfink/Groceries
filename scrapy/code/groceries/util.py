@@ -225,17 +225,21 @@ def get_url_metadata(cursor, url):
 # @param int store_id - store_id to filter for when looking for urls, -1 will use all
 # @param Boolean scrape_urls - if set to true, this will look for the scraped_urls flag instead
 # @param string filter - filters the url for the given string
+# @param boolean reverse_filter - reverses the filter to filter out all things that match the filter
 # @returns string url - next url found in the database pointed to by cursor
 
 
-def get_next_url(cursor, iteration, store_id=-1, scrape_urls=False, filter=""):
+def get_next_url(cursor, iteration, store_id=-1, scrape_urls=False, filter="", reverse_filter=False):
     sql = f"SELECT url from urlTable WHERE Scraped=0 ORDER BY updated DESC LIMIT {iteration}"
+    filter_string="LIKE"
+    if reverse_filter:
+        filter_string="NOT LIKE"
     # if store_id == -1:
     #    sql = f"SELECT url from urlTable WHERE Scraped=0 ORDER BY updated DESC LIMIT {iteration}"
     # else:
     #    sql = f"SELECT url from urlTable WHERE Scraped=0 AND store_id={store_id} ORDER BY updated DESC LIMIT {iteration}"
     if filter != "":
-        sql = sql.replace("ORDER", f"AND Url LIKE '%{filter}%' ORDER")
+        sql = sql.replace("ORDER", f"AND Url {filter_string} '%{filter}%' ORDER")
     if store_id != -1:
         sql = sql.replace("WHERE", f"WHERE store_id={store_id} AND")
     if scrape_urls:
@@ -287,10 +291,11 @@ def store_url(conn, url, store_id, category, section, subsection, grocery_quanti
 # @param MySQLDb.connection - connection used to fetch/store the data from the database
 # @param int store_id - store_id associated with the url to update
 # @param string url - url to update
+# @param int set_val - value to set in the database
 # @param bool scrape_urls - sets scraped_urls instead of scraped for the url
 # @returns string url - url updated
-def finish_url(conn, store_id, url, scrape_urls=False):
-    url_update = f" UPDATE urlTable SET scraped=1 WHERE url=\"{url}\" AND store_id='{store_id}'"
+def finish_url(conn, store_id, url,set_val=1, scrape_urls=False):
+    url_update = f" UPDATE urlTable SET scraped={set_val} WHERE url=\"{url}\" AND store_id='{store_id}'"
     if scrape_urls:
         url_update = url_update.replace("scraped", "scraped_urls")
     cursor = conn.cursor()

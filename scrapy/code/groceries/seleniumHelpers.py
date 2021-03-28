@@ -9,18 +9,11 @@ from scrapy_selenium import SeleniumRequest
 # @param string meta_url - the meta url to check to see if the urls is valid
 # @param boolean cookies - whether or not to use cookies (default true)
 # @returns SeleniumRequest request - request created with above parameters
-def create_unfiltered_parse_request(url,callback,wait_until,errback=None, meta_url="", cookies=True):
-    if meta_url == "" :
+def create_unfiltered_parse_request(url, callback, wait_until, errback=None, meta_url="", cookies=True):
+    if meta_url == "":
         meta_url = url
-    request = SeleniumRequest(
-                url=url,
-                callback=callback,
-                dont_filter=True,
-                wait_time=5,
-                meta={'url':meta_url, 'dont_merge_cookies': not cookies},
-                errback=errback,
-                wait_until=wait_until
-    			)
+    request = create_parse_request(
+        url, callback, wait_until, errback=errback, meta_url=meta_url, filter=False, cookies=cookies)
     return request
 
 
@@ -30,15 +23,18 @@ def create_unfiltered_parse_request(url,callback,wait_until,errback=None, meta_u
 # @param selenium.EC(tuple) wait_until - Expected condition to wait for
 # @param string meta_url - the meta url to check to see if the urls is valid
 # @param function errback - errorback function to hit when errorerd out
-# @param boolean cookies - whether or not to use cookies (default true)
-# @returns SeleniumRequest request - request created with above parameters
-def create_parse_request(url,callback,wait_until,errback=None ,meta_url="", cookies=True):
+# @param boolean cookies=True - whether or not to use cookies
+# @param boolean filter=True - whether or not to use the duplicate filter
+# @param int attempt=1 - the attempt it has at scraping it
+# @returns SeleniumRequest request - request created with above parameter
+def create_parse_request(url, callback, wait_until, errback=None, meta_url="", cookies=True, filter=True, attempt=1):
     request = SeleniumRequest(
-                url=url,
-                callback=callback,
-                wait_time=5,
-                meta={'url':url, 'dont_merge_cookies': not cookies},
-                errback=errback,
-                wait_until=wait_until
-    			)
+        url=url,
+        callback=callback,
+        wait_time=5,
+        dont_filter=not filter,
+        meta={'url': url, 'dont_merge_cookies': not cookies, 'attempt': attempt},
+        errback=errback,
+        wait_until=wait_until
+    )
     return request

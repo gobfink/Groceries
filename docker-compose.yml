@@ -1,9 +1,9 @@
-version: '3.5'
+version:                   '3.5'
 services:
   splash-middleware:
-     hostname: splash-middleware
-     image: scrapinghub/splash
-     command: --disable-private-mode
+     hostname:             splash-middleware
+     image:                scrapinghub/splash
+     command:              --disable-private-mode
      ports:
      - "5023:5023"
      - "8050:8050"
@@ -13,12 +13,12 @@ services:
   scrapy:
      volumes:
      - ./scrapy/code:/code
-     -  /tmp/.X11-unix:/tmp/.X11-unix
+     - /tmp/.X11-unix:/tmp/.X11-unix
+     - /dev/shm:/dev/shm
      build:
-       context: scrapy/
-       dockerfile: Dockerfile.debug
-       shm_size: '8gb'
-     hostname: scrapy
+       context:            scrapy/
+       dockerfile:         Dockerfile.debug
+     hostname:             scrapy
      environment:
         - "DISPLAY"
         - "PYTHONPATH=/code/groceries"
@@ -30,20 +30,20 @@ services:
      - backend
      entrypoint:
      - "/bin/bash"
-     working_dir: /code/groceries/spiders/walmart
+     working_dir:          /code/groceries/spiders/wegmans
   harris-teeter-urls:
      healthcheck:
-       test: ["CMD", "/opt/healthcheck.sh", "harris-teeter", "url"]
-       interval: 30s
-       start_period: 90s
-       retries: 1
+       test:               ["CMD", "/opt/healthcheck.sh", "-s", "harris-teeter", "-m", "url"]
+       interval:           30s
+       start_period:       90s
+       retries:            1
      volumes:
      - ./scrapy/code:/code
      build:
-       context: scrapy/
-       dockerfile: Dockerfile.selenium.runtime
-       shm_size: '8gb'
-     hostname: wegmans-scrapy
+       context:            scrapy/
+       dockerfile:         Dockerfile.selenium.runtime
+       shm_size:           '8gb'
+     hostname:             wegmans-scrapy
      environment:
         - "PYTHONPATH=/code/groceries"
      depends_on:
@@ -51,22 +51,22 @@ services:
      -  adminer
      networks:
      - backend
-     entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
-     working_dir: /code/groceries/spiders/harris-teeter
-     restart: unless-stopped
+     entrypoint:           "/usr/local/bin/scrapy runspider urlScraper.py"
+     working_dir:          /code/groceries/spiders/harris-teeter
+     restart:              unless-stopped
   harris-teeter:
      healthcheck:
-       test: ["CMD", "/opt/healthcheck.sh", "harris-teeter", "groceries"]
-       interval: 30s
-       start_period: 90s
-       retries: 1
+       test:               ["CMD", "/opt/healthcheck.sh", "-s", "harris-teeter", "-m",  "grocery"]
+       interval:           30s
+       start_period:       90s
+       retries:            1
      volumes:
      - ./scrapy/code:/code
      build:
-       context: scrapy/
-       dockerfile: Dockerfile.selenium.runtime
-       shm_size: '6gb'
-     hostname: harristeeter-scrapy
+       context:            scrapy/
+       dockerfile:         Dockerfile.selenium.runtime
+       shm_size:           '6gb'
+     hostname:             harristeeter-scrapy
      environment:
         - "PYTHONPATH=/code/groceries"
      depends_on:
@@ -74,17 +74,62 @@ services:
      -  adminer
      networks:
      - backend
-     entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
-     working_dir: /code/groceries/spiders/harris-teeter
-     restart: unless-stopped
+     entrypoint:           "/usr/local/bin/scrapy runspider groceryScraper.py"
+     working_dir:          /code/groceries/spiders/harris-teeter
+     restart:              unless-stopped
+  wegmans-urls:
+    healthcheck:
+      test:                ["CMD", "/opt/healthcheck.sh", "-s", "wegmans", "-m" ,"grocery" ]
+      start_period:        90s
+      retries:             1
+    volumes:
+    - /dev/shm:/dev/shm
+    - ./scrapy/code:/code
+    build:
+      context:             scrapy/
+      dockerfile:          Dockerfile.selenium.runtime
+    hostname:              wegmans-url-scraper
+    environment:
+      - "PYTHONPATH=/code/groceries"
+    depends_on:
+      - db
+      - adminer
+    entrypoint:            "/usr/local/bin/scrapy runspider urlScraper.py"
+    working_dir:           /code/groceries/spiders/wegmans
+    restart:               unless-stopped
+    networks:
+      - backend
+  wegmans-groceries:
+      healthcheck:
+        test:              ["CMD", "/opt/healthcheck.sh", "-s", "wegmans", "-m" ,"grocery" , "-l", "LAKE_MANASSAS"]
+        interval:          30s
+        start_period:      90s
+        retries:           1
+      volumes:
+      - /dev/shm:/dev/shm
+      - ./scrapy/code:/code
+      build:
+        context:           scrapy/
+        dockerfile:        Dockerfile.selenium.runtime
+      hostname:            wegmans-grocery-scraper
+      environment:
+        - "PYTHONPATH=/code/groceries"
+      depends_on:
+        - db
+        - adminer
+      entrypoint:          "/usr/local/bin/scrapy runspider groceryScraper.py"
+      working_dir:         /code/groceries/spiders/wegmans
+      restart:             unless-stopped
+      networks:
+        - backend
   wegmans:
      volumes:
      - ./scrapy/code:/code
      build:
-       context: scrapy/
-       dockerfile: Dockerfile.selenium.runtime
-       shm_size: '3gb'
-     hostname: wegmans-scrapy
+       context:            scrapy/
+       dockerfile:         Dockerfile.selenium.runtime
+       shm_size:           '3gb'
+     hostname:             wegmans-scrapy
      environment:
         - "PYTHONPATH=/code/groceries"
      depends_on:
@@ -92,22 +137,22 @@ services:
      -  adminer
      networks:
      - backend
-     entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
-     working_dir: /code/groceries/spiders/wegmans
-     restart: unless-stopped
+     entrypoint:           "/usr/local/bin/scrapy runspider scraper.py"
+     working_dir:          /code/groceries/spiders/wegmans
+     restart:              unless-stopped
   safeway:
      healthcheck:
-       test: ["CMD", "/opt/healthcheck.sh", "safeway", "groceries"]
-       interval: 30s
-       start_period: 90s
-       retries: 1
+       test:               ["CMD", "/opt/healthcheck.sh", "-s", "safeway", "-m", "grocery"]
+       interval:           30s
+       start_period:       90s
+       retries:            1
      volumes:
      - ./scrapy/code:/code
      build:
-       context: scrapy/
-       dockerfile: Dockerfile.selenium.runtime
-       shm_size: '4gb'
-     hostname: safeway-groceries
+       context:            scrapy/
+       dockerfile:         Dockerfile.selenium.runtime
+       shm_size:           '4gb'
+     hostname:             safeway-groceries
      environment:
         - "PYTHONPATH=/code/groceries"
      depends_on:
@@ -115,22 +160,22 @@ services:
      -  adminer
      networks:
      - backend
-     entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
-     working_dir: /code/groceries/spiders/safeway
-     restart: unless-stopped
+     entrypoint:           "/usr/local/bin/scrapy runspider groceryScraper.py"
+     working_dir:          /code/groceries/spiders/safeway
+     restart:              unless-stopped
   safeway-urls:
      healthcheck:
-       test: ["CMD", "/opt/healthcheck.sh", "safeway", "url"]
-       interval: 60s
-       start_period: 200s
-       retries: 1
+       test:               ["CMD", "/opt/healthcheck.sh", "-s", "safeway", "-m", "url"]
+       interval:           60s
+       start_period:       200s
+       retries:            1
      volumes:
      - ./scrapy/code:/code
      build:
-       context: scrapy/
-       dockerfile: Dockerfile.selenium.runtime
-       shm_size: '6gb'
-     hostname: safeway-urls
+       context:            scrapy/
+       dockerfile:         Dockerfile.selenium.runtime
+       shm_size:           '6gb'
+     hostname:             safeway-urls
      environment:
         - "PYTHONPATH=/code/groceries"
      depends_on:
@@ -138,22 +183,22 @@ services:
      -  adminer
      networks:
      - backend
-     entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
-     working_dir: /code/groceries/spiders/safeway
-     restart: unless-stopped
+     entrypoint:           "/usr/local/bin/scrapy runspider urlScraper.py"
+     working_dir:          /code/groceries/spiders/safeway
+     restart:              unless-stopped
   safeway-groceries:
      healthcheck:
-       test: ["CMD", "/opt/healthcheck.sh", "safeway", "grocery"]
-       interval: 60s
-       start_period: 200s
-       retries: 1
+       test:               ["CMD", "/opt/healthcheck.sh", "-s", "safeway", "-m", "grocery"]
+       interval:           60s
+       start_period:       200s
+       retries:            1
      volumes:
      - ./scrapy/code:/code
      build:
-       context: scrapy/
-       dockerfile: Dockerfile.selenium.runtime
-       shm_size: '6gb'
-     hostname: safeway-groceries
+       context:            scrapy/
+       dockerfile:         Dockerfile.selenium.runtime
+       shm_size:           '6gb'
+     hostname:             safeway-groceries
      environment:
         - "PYTHONPATH=/code/groceries"
      depends_on:
@@ -161,147 +206,147 @@ services:
      -  adminer
      networks:
      - backend
-     entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
-     working_dir: /code/groceries/spiders/safeway
-     restart: unless-stopped
+     entrypoint:           "/usr/local/bin/scrapy runspider groceryScraper.py"
+     working_dir:          /code/groceries/spiders/safeway
+     restart:              unless-stopped
   lidl-urls:
     healthcheck:
-       test: ["CMD", "/opt/healthcheck.sh", "lidl", "url"]
-       interval: 30s
-       start_period: 90s
-       retries: 1
+       test:               ["CMD", "/opt/healthcheck.sh", "-s", "lidl", "-m", "url"]
+       interval:           30s
+       start_period:       90s
+       retries:            1
     volumes:
     - ./scrapy/code:/code
     build:
-      context: scrapy/
-      dockerfile: Dockerfile.runtime
-    hostname: lidl-urls
+      context:             scrapy/
+      dockerfile:          Dockerfile.runtime
+    hostname:              lidl-urls
     depends_on:
       - splash-middleware
       - db
       - adminer
     networks:
       - backend
-    working_dir: /code/groceries/spiders/lidl
-    entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
+    working_dir:           /code/groceries/spiders/lidl
+    entrypoint:            "/usr/local/bin/scrapy runspider urlScraper.py"
     environment:
-      PYTHONPATH: /code/groceries/
-    restart: unless-stopped
+      PYTHONPATH:          /code/groceries/
+    restart:               unless-stopped
   lidl-groceries:
     healthcheck:
-       test: ["CMD", "/opt/healthcheck.sh", "lidl", "groceries"]
-       interval: 30s
-       start_period: 90s
-       retries: 1
+       test:               ["CMD", "/opt/healthcheck.sh", "-s" ,"lidl","-m","grocery"]
+       interval:           30s
+       start_period:       90s
+       retries:            1
     volumes:
     - ./scrapy/code:/code
     build:
-      context: scrapy/
-      dockerfile: Dockerfile.runtime
-    hostname: lidl-groceries
+      context:             scrapy/
+      dockerfile:          Dockerfile.runtime
+    hostname:              lidl-groceries
     depends_on:
       - splash-middleware
       - db
       - adminer
     networks:
       - backend
-    working_dir: /code/groceries/spiders/lidl
-    entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
+    working_dir:           /code/groceries/spiders/lidl
+    entrypoint:            "/usr/local/bin/scrapy runspider groceryScraper.py"
     environment:
-      PYTHONPATH: /code/groceries/
-    restart: unless-stopped
+      PYTHONPATH:          /code/groceries/
+    restart:               unless-stopped
   lidl:
     volumes:
     - ./scrapy/code:/code
     build:
-      context: scrapy/
-      dockerfile: Dockerfile.runtime
-    hostname: lidl-scrapy
+      context:             scrapy/
+      dockerfile:          Dockerfile.runtime
+    hostname:              lidl-scrapy
     depends_on:
     - splash-middleware
     - db
     - adminer
     networks:
     - backend
-    working_dir: /code/groceries/spiders/lidl
-    entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+    working_dir:           /code/groceries/spiders/lidl
+    entrypoint:            "/usr/local/bin/scrapy runspider scraper.py"
     environment:
-      PYTHONPATH: /code/groceries/
-    restart: unless-stopped
+      PYTHONPATH:          /code/groceries/
+    restart:               unless-stopped
   walmart-urls:
     healthcheck:
-       test: ["CMD", "/opt/healthcheck.sh", "walmart", "urls"]
-       interval: 30s
-       start_period: 90s
-       retries: 1
+       test:               ["CMD", "/opt/healthcheck.sh","-s", "walmart", "-m", "urls"]
+       interval:           30s
+       start_period:       90s
+       retries:            1
     volumes:
     - ./scrapy/code:/code
     build:
-      context: scrapy/
-      dockerfile: Dockerfile.selenium.runtime
-    hostname: walmart-urls
+      context:             scrapy/
+      dockerfile:          Dockerfile.selenium.runtime
+    hostname:              walmart-urls
     depends_on:
     - splash-middleware
     - db
     - adminer
     networks:
     - backend
-    working_dir: /code/groceries/spiders/walmart
-    entrypoint: "/usr/local/bin/scrapy runspider urlScraper.py"
+    working_dir:           /code/groceries/spiders/walmart
+    entrypoint:            "/usr/local/bin/scrapy runspider urlScraper.py"
     environment:
-      PYTHONPATH: /code/groceries/
-    restart: unless-stopped
+      PYTHONPATH:          /code/groceries/
+    restart:               unless-stopped
   walmart-groceries:
     healthcheck:
-       test: ["CMD", "/opt/healthcheck.sh", "walmart", "groceries"]
-       interval: 30s
-       start_period: 90s
-       retries: 1
+       test:               ["CMD", "/opt/healthcheck.sh", "-s" , "walmart", "-m" ,"grocery"]
+       interval:           30s
+       start_period:       90s
+       retries:            1
     volumes:
     - ./scrapy/code:/code
     build:
-      context: scrapy/
-      dockerfile: Dockerfile.selenium.runtime
-    hostname: walmart-groceries
+      context:             scrapy/
+      dockerfile:          Dockerfile.selenium.runtime
+    hostname:              walmart-groceries
     depends_on:
     - db
     - adminer
     networks:
     - backend
-    working_dir: /code/groceries/spiders/walmart
-    entrypoint: "/usr/local/bin/scrapy runspider groceryScraper.py"
+    working_dir:           /code/groceries/spiders/walmart
+    entrypoint:            "/usr/local/bin/scrapy runspider groceryScraper.py"
     environment:
-      PYTHONPATH: /code/groceries/
-    restart: unless-stopped
+      PYTHONPATH:          /code/groceries/
+    restart:               unless-stopped
   walmart:
     volumes:
     - ./scrapy/code:/code
     build:
-      context: scrapy/
-      dockerfile: Dockerfile.runtime
-    hostname: walmart-scrapy
+      context:             scrapy/
+      dockerfile:          Dockerfile.runtime
+    hostname:              walmart-scrapy
     depends_on:
     - splash-middleware
     - db
     - adminer
     networks:
     - backend
-    working_dir: /code/groceries/spiders/walmart
-    entrypoint: "/usr/local/bin/scrapy runspider scraper.py"
+    working_dir:           /code/groceries/spiders/walmart
+    entrypoint:            "/usr/local/bin/scrapy runspider scraper.py"
     environment:
-      PYTHONPATH: /code/groceries/
-    restart: unless-stopped
+      PYTHONPATH:          /code/groceries/
+    restart:               unless-stopped
   db:
-    hostname: db
-    image: mysql
-    command: --default-authentication-plugin=mysql_native_password
-    restart: unless-stopped
+    hostname:              db
+    image:                 mysql
+    command:               --default-authentication-plugin=mysql_native_password
+    restart:               unless-stopped
     networks:
       - backend
     environment:
-      MYSQL_DATABASE: db
-      MYSQL_USER: root
-      MYSQL_PASSWORD: example
+      MYSQL_DATABASE:      db
+      MYSQL_USER:          root
+      MYSQL_PASSWORD:      example
       MYSQL_ROOT_PASSWORD: example
     volumes:
       #- ./schema:/docker-entrypopint-initdb.d
@@ -309,9 +354,9 @@ services:
     ports:
       - "3306:3306"
   adminer:
-    hostname: adminer
-    image: adminer
-    restart: unless-stopped
+    hostname:              adminer
+    image:                 adminer
+    restart:               unless-stopped
     networks:
       - backend
     depends_on:
@@ -319,9 +364,9 @@ services:
     ports:
       - "8081:8080"
   flask:
-    hostname: flask
-    build: './flask/'
-    restart: unless-stopped
+    hostname:              flask
+    build:                 './flask/'
+    restart:               unless-stopped
     volumes:
       - ./flask/code:/code
       - ./upload:/code/app/upload
@@ -331,8 +376,8 @@ services:
       - backend
       - frontend
     environment:
-      FLASK_CONFIG: development
-      FLASK_APP: run.py
+      FLASK_CONFIG:        development
+      FLASK_APP:           run.py
     depends_on:
       - db
 networks:
